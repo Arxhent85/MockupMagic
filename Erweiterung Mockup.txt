@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MockupMagic 3D - Pro Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/GLTFExporter.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+    </script>
+    
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #f1f5f9; touch-action: none; }
+        .app-container { display: flex; flex-direction: column; height: 100dvh; width: 100vw; position: relative; }
+        @media (min-width: 768px) { .app-container { flex-direction: row; } }
+        
+        .viewport-fullscreen {
+            position: fixed !important;
+            top: 0 !important; left: 0 !important;
+            width: 100vw !important; height: 100dvh !important;
+            z-index: 99999 !important;
+            background: #f1f5f9;
+        }
+
+        #canvas-container { width: 100%; height: 100%; cursor: grab; outline: none; }
+        #canvas-container:active { cursor: grabbing; }
+        
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        
+        input[type="range"] { accent-color: #2563eb; width: 100%; }
+        input[type="color"] { padding: 0; border: none; border-radius: 4px; overflow: hidden; cursor: pointer; }
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        input[type="color"]::-webkit-color-swatch { border: 1px solid #e2e8f0; border-radius: 4px; }
+
+        .section-title { font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem; }
+        .control-group { background: white; padding: 1rem; border-radius: 0.5rem; border: 1px solid #e2e8f0; margin-bottom: 1rem; }
+    </style>
+</head>
+<body>
+
+<div class="app-container font-sans text-slate-800">
+
+    <!-- 3D VIEWPORT -->
+    <div id="viewport-wrapper" class="w-full h-[45vh] md:h-full md:flex-1 relative border-b md:border-b-0 border-slate-200 bg-gradient-to-b from-slate-100 to-slate-200 z-10 transition-all duration-300">
+        
+        <div class="absolute top-4 left-4 bg-white/80 backdrop-blur p-2 rounded shadow-sm z-20 text-[10px] md:text-xs text-slate-600 pointer-events-none border border-white/50">
+            <span class="font-bold">Kamera:</span> 1-Finger wischen, 2-Finger zoomen
+        </div>
+
+        <button id="btn-fullscreen" class="absolute top-4 right-4 bg-white/90 hover:bg-white backdrop-blur p-3 md:p-2 rounded-lg shadow-lg z-20 text-slate-800 transition-colors flex items-center gap-2 border border-slate-200 active:scale-95">
+            <svg id="icon-maximize" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
+            <svg id="icon-minimize" class="hidden" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path></svg>
+            <span id="text-fullscreen" class="text-sm font-bold hidden md:inline">Vollbild</span>
+        </button>
+        
+        <div id="export-overlay" class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm z-30 flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
+            <svg class="animate-spin h-10 w-10 text-white mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            <p class="text-white font-bold tracking-wide">Bereite 3D-Datei vor...</p>
+        </div>
+
+        <!-- DOWNLOAD BEREIT MODAL -->
+        <div id="download-ready-modal" class="absolute inset-0 bg-slate-900/90 backdrop-blur-md z-40 flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 px-4">
+            <div class="bg-white p-6 rounded-xl shadow-2xl text-center max-w-sm w-full">
+                <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                </div>
+                <h3 class="text-lg font-bold text-slate-800 mb-2">Download gestartet!</h3>
+                <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 text-xs p-3 rounded mb-4 text-left leading-relaxed">
+                    Der Download auf deinen PC/Handy sollte automatisch starten.
+                    <br><br>
+                    <strong>Falls nichts passiert (oder in der App):</strong><br>
+                    Klicke nochmal auf den Button oder drücke <strong>lange</strong> darauf und wähle "Link herunterladen".
+                </div>
+                
+                <a id="final-download-link" href="#" download="M-ONE-Modell.glb" class="block w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-md mb-3 transition-colors">
+                    Datei Herunterladen
+                </a>
+                <button id="btn-close-modal" class="text-sm text-slate-400 hover:text-slate-600 font-bold mt-2">Abbrechen</button>
+            </div>
+        </div>
+
+        <div id="canvas-container"></div>
+    </div>
+
+    <!-- SIDEBAR UI -->
+    <div id="sidebar-ui" class="w-full md:w-[400px] bg-slate-50 shadow-2xl flex flex-col z-0 h-[55vh] md:h-full overflow-hidden order-last md:order-first border-r border-slate-200">
+        
+        <div class="p-4 bg-slate-900 text-white shrink-0 flex justify-between items-center">
+            <div>
+                <h1 class="text-xl font-bold flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                    MockupMagic
+                </h1>
+            </div>
+        </div>
+
+        <div class="p-4 flex-1 overflow-y-auto space-y-2 pb-20"> 
+            
+            <div class="control-group">
+                <h2 class="section-title">Produkt wählen</h2>
+                <div class="flex gap-2">
+                    <button id="btn-mode-can" class="flex-1 py-2 px-3 rounded-md border text-sm font-bold transition-colors bg-blue-50 border-blue-500 text-blue-700">Sprühdose</button>
+                    <button id="btn-mode-cart" class="flex-1 py-2 px-3 rounded-md border text-sm font-bold transition-colors bg-white border-slate-200 text-slate-600 hover:bg-slate-50">Silikonkartusche</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h2 class="section-title">Abmessungen</h2>
+                <div class="space-y-4">
+                    <div>
+                        <div class="flex justify-between text-xs text-slate-500 mb-1">
+                            <label>Durchmesser (Breite)</label>
+                            <span id="val-diam" class="font-bold text-slate-700">65 mm</span>
+                        </div>
+                        <input type="range" id="dim-diam" min="30" max="90" step="1" value="65">
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs text-slate-500 mb-1">
+                            <label>Höhe (Hauptkörper)</label>
+                            <span id="val-height" class="font-bold text-slate-700">145 mm</span> 
+                        </div>
+                        <input type="range" id="dim-height" min="50" max="300" step="1" value="145"> 
+                    </div>
+                    <div class="pt-2 border-t border-slate-100">
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="text-xs text-slate-500 font-bold">Deckel / Düse aufsetzen</label>
+                            <input type="checkbox" id="toggle-lid" checked class="w-5 h-5 accent-blue-600">
+                        </div>
+                        <div class="flex justify-between text-xs text-slate-500 mb-1">
+                            <label>Aufsatzhöhe (Deckel/Düse)</label>
+                            <span id="val-lidheight" class="font-bold text-slate-700">45 mm</span>
+                        </div>
+                        <input type="range" id="dim-lidheight" min="10" max="150" step="1" value="45">
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="section-title m-0">Farben & Finish</h2>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-xs text-slate-500 mb-1">Körperfarbe</label>
+                        <input type="color" id="color-body" value="#d1d5db" class="w-full h-10">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-500 mb-1">Aufsatzfarbe</label>
+                        <input type="color" id="color-lid" value="#111111" class="w-full h-10">
+                    </div>
+                </div>
+                
+                <div class="space-y-4 pt-2 border-t border-slate-100">
+                    <div>
+                        <div class="flex justify-between text-[10px] font-bold text-slate-600 mb-1">
+                            <label>Körper-Material (Plastik &rarr; Chrom)</label>
+                        </div>
+                        <input type="range" id="slider-metalness" min="0" max="1" step="0.05" value="1.0">
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-[10px] font-bold text-slate-600 mb-1">
+                            <label>Aufsatz-Glanz (Matt &rarr; Lack)</label>
+                        </div>
+                        <input type="range" id="slider-lid-gloss" min="0" max="1" step="0.05" value="0.8">
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-group border-blue-200 bg-blue-50/50 mb-4">
+                <h2 class="section-title text-blue-800">Dein Etikett (Design)</h2>
+
+                <label class="flex flex-col items-center justify-center w-full h-16 border-2 border-dashed border-blue-400 rounded-lg cursor-pointer bg-white hover:bg-blue-50 transition-colors mb-3 relative overflow-hidden group shadow-sm">
+                    <div id="upload-overlay" class="absolute inset-0 bg-blue-500 flex items-center justify-center opacity-0 transition-opacity z-10">
+                        <span class="text-white font-bold text-sm animate-pulse">Wird verarbeitet...</span>
+                    </div>
+                    <div class="flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-blue-600"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                        <span id="upload-text" class="text-sm text-blue-700 font-bold">PDF / Bild hochladen</span>
+                    </div>
+                    <input type="file" id="file-upload" class="hidden" accept=".pdf, .png, .jpg, .jpeg, application/pdf, image/*">
+                </label>
+
+                <div id="decal-controls" class="space-y-4 opacity-50 pointer-events-none transition-opacity">
+                    <button id="btn-autofit" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded shadow-sm transition-colors active:scale-95">
+                        Auf Dose zentrieren
+                    </button>
+                    
+                    <div class="space-y-3 pt-2 border-t border-blue-200/50">
+                        <div>
+                            <div class="flex justify-between text-[10px] font-bold text-blue-800 mb-1"><label>Größe (Umfang)</label></div>
+                            <input type="range" id="decal-scale" min="0.1" max="1.5" step="0.01" value="0.95">
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-[10px] font-bold text-blue-800 mb-1"><label>Horizontal (Links / Rechts drehen)</label></div>
+                            <input type="range" id="decal-x" min="0" max="1" step="0.01" value="0.5">
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-[10px] font-bold text-blue-800 mb-1"><label>Vertikal (Oben / Unten schieben)</label></div>
+                            <input type="range" id="decal-y" min="0" max="1" step="0.01" value="0.5">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-4 bg-white border-t border-slate-200 shrink-0">
+            <button id="btn-export-glb" class="w-full bg-slate-900 hover:bg-blue-700 text-white font-bold py-4 px-4 rounded-lg shadow-lg flex justify-center items-center gap-2 transition-transform active:scale-95">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+                3D-Modell Speichern (.glb)
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<!-- 3D LOGIC SCRIPTS -->
+<script>
+    const container = document.getElementById('canvas-container');
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(40, container.clientWidth / container.clientHeight, 0.1, 100);
+    camera.position.set(0, 0, 35);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); 
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    container.appendChild(renderer.domElement);
+
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.target.set(0, 0, 0); 
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    scene.add(ambientLight);
+    const mainLight = new THREE.DirectionalLight(0xffffff, 1.2);
+    mainLight.position.set(10, 20, 15);
+    mainLight.castShadow = true;
+    scene.add(mainLight);
+    const fillLight = new THREE.DirectionalLight(0xe2e8f0, 0.8);
+    fillLight.position.set(-15, 5, -10);
+    scene.add(fillLight);
+
+    // Globale Materialien
+    const bodyMat = new THREE.MeshStandardMaterial({ color: 0xd1d5db, metalness: 1.0, roughness: 0.25 });
+    const lidMat = new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.1, roughness: 0.2 }); 
+
+    const uvCanvas = document.createElement('canvas');
+    uvCanvas.width = 4096; uvCanvas.height = 4096;
+    const uvCtx = uvCanvas.getContext('2d');
+    uvCtx.fillStyle = 'rgba(255, 255, 255, 0)';
+    uvCtx.clearRect(0, 0, uvCanvas.width, uvCanvas.height);
+
+    const canvasTexture = new THREE.CanvasTexture(uvCanvas);
+    canvasTexture.encoding = THREE.sRGBEncoding;
+    canvasTexture.flipY = false;
+    
+    const labelMat = new THREE.MeshStandardMaterial({
+        map: canvasTexture,
+        transparent: true,
+        alphaTest: 0.05, 
+        metalness: 0.1,
+        roughness: 0.3,
+        side: THREE.FrontSide 
+    });
+
+    // --- 3D MODELLE AUFBAUEN ---
+    let currentModelType = 'can'; 
+
+    const masterGroup = new THREE.Group(); 
+    scene.add(masterGroup);
+    
+    // Gruppe 1: Sprühdose (Bestehend)
+    const canGroup = new THREE.Group(); 
+    masterGroup.add(canGroup);
+    const geoCylinder = new THREE.CylinderGeometry(1, 1, 1, 64);
+    const geoTorus = new THREE.TorusGeometry(1, 0.05, 16, 64);
+    const geoDome = new THREE.SphereGeometry(1, 64, 32, 0, Math.PI*2, 0, Math.PI/2); 
+
+    const meshBody = new THREE.Mesh(geoCylinder, bodyMat);
+    const meshLabel = new THREE.Mesh(geoCylinder, labelMat);
+    meshLabel.visible = false; 
+    const meshRimBottom = new THREE.Mesh(geoTorus, bodyMat);
+    meshRimBottom.rotation.x = Math.PI / 2;
+    const meshRimTop = new THREE.Mesh(geoTorus, bodyMat);
+    meshRimTop.rotation.x = Math.PI / 2;
+    const meshDome = new THREE.Mesh(geoDome, bodyMat);
+    meshDome.scale.y = 0.4;
+    const meshValve = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.4, 32), bodyMat);
+    const meshLid = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 1, 64), lidMat);
+    canGroup.add(meshBody, meshLabel, meshRimBottom, meshRimTop, meshDome, meshValve, meshLid);
+
+    // --- NEU: Gruppe 2: Silikonkartusche (Exakt nach Foto) ---
+    const cartGroup = new THREE.Group();
+    cartGroup.visible = false; 
+    masterGroup.add(cartGroup);
+    
+    const meshCartBody = new THREE.Mesh(geoCylinder, bodyMat);
+    const meshCartLabel = new THREE.Mesh(geoCylinder, labelMat);
+    meshCartLabel.visible = false;
+    
+    // Oberer Rand (Dicke Plastiklippe)
+    const meshCartTopLip = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 1, 64), bodyMat);
+    
+    // Flacher Deckel (innerhalb der Lippe)
+    const meshCartTopFlat = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 1, 64), bodyMat);
+    
+    // Gewinde-Basis (Zylinder mit Rillen angedeutet durch flatShading oder einfach glatt)
+    const meshCartThread = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 1, 32), bodyMat);
+    
+    // Düsen-Basis (Der dicke Teil der aufgeschraubt wird)
+    const meshCartNozzleBase = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.32, 1, 32), lidMat);
+    
+    // Düsen-Spitze (Der lange Konus)
+    const meshCartNozzleTip = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.2, 1, 32), lidMat);
+    
+    // Unterer Kolbenrand
+    const meshCartRim = new THREE.Mesh(new THREE.CylinderGeometry(1.02, 1.02, 0.1, 64), bodyMat);
+    
+    cartGroup.add(meshCartBody, meshCartLabel, meshCartTopLip, meshCartTopFlat, meshCartThread, meshCartNozzleBase, meshCartNozzleTip, meshCartRim);
+
+
+    // --- DYNAMISCHE MAßE & POSITIONIERUNG ---
+    function updateDimensions() {
+        const d_mm = parseFloat(document.getElementById('dim-diam').value);
+        const h_mm = parseFloat(document.getElementById('dim-height').value);
+        const l_mm = parseFloat(document.getElementById('dim-lidheight').value);
+
+        const r = (d_mm / 2) / 10; 
+        const h = h_mm / 10;
+        const l = l_mm / 10;
+
+        if (currentModelType === 'can') {
+            canGroup.visible = true;
+            cartGroup.visible = false;
+
+            meshBody.scale.set(r, h, r); meshBody.position.y = h / 2;
+            meshLabel.scale.set(r * 1.005, h, r * 1.005); meshLabel.position.y = h / 2;
+            meshRimBottom.scale.set(r, r, r); meshRimBottom.position.y = 0;
+            meshRimTop.scale.set(r, r, r); meshRimTop.position.y = h;
+            meshDome.scale.set(r * 0.95, r * 0.4, r * 0.95); meshDome.position.y = h;
+            meshValve.position.y = h + (r*0.4);
+            meshLid.scale.set(r, l, r); meshLid.position.y = h + (l / 2);
+
+            const showLid = document.getElementById('toggle-lid').checked;
+            meshLid.visible = showLid;
+
+            let totalHeight = h;
+            if(showLid) totalHeight += l;
+            canGroup.position.y = - (totalHeight / 2);
+
+        } else if (currentModelType === 'cartridge') {
+            canGroup.visible = false;
+            cartGroup.visible = true;
+
+            // Hauptkörper
+            meshCartBody.scale.set(r, h, r); meshCartBody.position.y = h / 2;
+            meshCartLabel.scale.set(r * 1.005, h, r * 1.005); meshCartLabel.position.y = h / 2;
+            meshCartRim.scale.set(r, 1, r); meshCartRim.position.y = 0.05;
+
+            // Kartuschen-Kopf (Flach mit Lippe)
+            const lipH = 0.15; // 1.5mm Lippe oben
+            meshCartTopLip.scale.set(r, lipH, r);
+            meshCartTopLip.position.y = h + (lipH / 2);
+
+            const flatH = 0.05; // Deckeldicke
+            meshCartTopFlat.scale.set(r, flatH, r);
+            meshCartTopFlat.position.y = h + lipH - (flatH / 2); // Leicht nach innen versetzt
+
+            // Gewinde (Standard ca. 1 cm hoch)
+            const threadH = 1.0; 
+            meshCartThread.scale.set(r, threadH, r);
+            meshCartThread.position.y = h + lipH + (threadH / 2);
+
+            // Düse (l_mm = Gesamtlänge der Düse). Aufgeteilt in Basis und Spitze.
+            const nozzleBaseH = l * 0.15; // Untere 15% sind der dicke Schraubverschluss
+            const nozzleTipH = l * 0.85;  // Obere 85% sind die dünne Spitze
+
+            meshCartNozzleBase.scale.set(r, nozzleBaseH, r);
+            meshCartNozzleBase.position.y = h + lipH + (nozzleBaseH / 2); // Schraubt sich über das Gewinde
+
+            meshCartNozzleTip.scale.set(r, nozzleTipH, r);
+            meshCartNozzleTip.position.y = h + lipH + nozzleBaseH + (nozzleTipH / 2);
+
+            // Toggle Logik (Nur die Düse wird ausgeblendet, Gewinde bleibt)
+            const showNozzle = document.getElementById('toggle-lid').checked;
+            meshCartNozzleBase.visible = showNozzle;
+            meshCartNozzleTip.visible = showNozzle;
+
+            // Zentrierung
+            let totalHeight = h + lipH + threadH; // Höhe ohne Düse
+            if(showNozzle) totalHeight = h + lipH + nozzleBaseH + nozzleTipH;
+            cartGroup.position.y = - (totalHeight / 2);
+        }
+
+        if(uploadedImage) updateTexture();
+    }
+
+    // --- ETIKETTEN LOGIK ---
+    let uploadedImage = null;
+    function updateTexture() {
+        if (!uploadedImage) return;
+        const wrapPercent = parseFloat(document.getElementById('decal-scale').value);
+        const rotX = parseFloat(document.getElementById('decal-x').value);
+        const posY = parseFloat(document.getElementById('decal-y').value);
+        const d_mm = parseFloat(document.getElementById('dim-diam').value);
+        const h_mm = parseFloat(document.getElementById('dim-height').value);
+        
+        const physCircumference = Math.PI * d_mm;
+        const physHeight = h_mm;
+        const cw = uvCanvas.width;
+        const ch = uvCanvas.height;
+        uvCtx.clearRect(0, 0, cw, ch);
+
+        const imgAspect = uploadedImage.width / uploadedImage.height;
+        const targetPhysWidth = physCircumference * wrapPercent;
+        const targetPhysHeight = targetPhysWidth / imgAspect; 
+
+        const drawW = (targetPhysWidth / physCircumference) * cw;
+        const drawH = (targetPhysHeight / physHeight) * ch;
+        const centerX = rotX * cw;
+        const centerY = posY * ch; 
+        const startX = centerX - (drawW / 2);
+        const startY = centerY - (drawH / 2);
+
+        uvCtx.save();
+        uvCtx.translate(0, ch);
+        uvCtx.scale(1, -1);
+        uvCtx.drawImage(uploadedImage, startX, startY, drawW, drawH);
+        if (startX < 0) uvCtx.drawImage(uploadedImage, startX + cw, startY, drawW, drawH);
+        if (startX + drawW > cw) uvCtx.drawImage(uploadedImage, startX - cw, startY, drawW, drawH);
+        uvCtx.restore();
+        canvasTexture.needsUpdate = true;
+    }
+
+    function enableDecalControls(img, successMessage) {
+        uploadedImage = img;
+        meshLabel.visible = true;
+        meshCartLabel.visible = true;
+        document.getElementById('decal-controls').classList.remove('opacity-50', 'pointer-events-none');
+        document.getElementById('decal-scale').value = 1.0;
+        document.getElementById('decal-x').value = 0.5;
+        document.getElementById('decal-y').value = 0.5;
+        updateTexture();
+        const textEl = document.getElementById('upload-text');
+        const overlay = document.getElementById('upload-overlay');
+        overlay.classList.remove('opacity-100');
+        textEl.innerText = successMessage;
+        setTimeout(() => { textEl.innerText = "Anderes PDF/Bild hochladen"; }, 2500);
+    }
+
+    function handleResize() {
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+        renderer.setSize(width, height);
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+    }
+
+    // --- UI EVENT LISTENERS ---
+
+    const btnCan = document.getElementById('btn-mode-can');
+    const btnCart = document.getElementById('btn-mode-cart');
+
+    btnCan.addEventListener('click', () => {
+        currentModelType = 'can';
+        btnCan.className = "flex-1 py-2 px-3 rounded-md border text-sm font-bold transition-colors bg-blue-50 border-blue-500 text-blue-700";
+        btnCart.className = "flex-1 py-2 px-3 rounded-md border text-sm font-bold transition-colors bg-white border-slate-200 text-slate-600 hover:bg-slate-50";
+        
+        document.getElementById('dim-diam').value = 65; document.getElementById('val-diam').innerText = '65 mm';
+        document.getElementById('dim-height').value = 145; document.getElementById('val-height').innerText = '145 mm';
+        document.getElementById('dim-lidheight').value = 45; document.getElementById('val-lidheight').innerText = '45 mm';
+        
+        document.getElementById('color-body').value = "#d1d5db"; bodyMat.color.set("#d1d5db");
+        document.getElementById('color-lid').value = "#111111"; lidMat.color.set("#111111");
+        document.getElementById('slider-metalness').value = 1.0; bodyMat.metalness = 1.0;
+        document.getElementById('slider-lid-gloss').value = 0.8; lidMat.roughness = 0.2;
+        
+        updateDimensions();
+    });
+
+    btnCart.addEventListener('click', () => {
+        currentModelType = 'cartridge';
+        btnCart.className = "flex-1 py-2 px-3 rounded-md border text-sm font-bold transition-colors bg-blue-50 border-blue-500 text-blue-700";
+        btnCan.className = "flex-1 py-2 px-3 rounded-md border text-sm font-bold transition-colors bg-white border-slate-200 text-slate-600 hover:bg-slate-50";
+        
+        // Kartusche Standardmaße (Normkartusche)
+        document.getElementById('dim-diam').value = 48; document.getElementById('val-diam').innerText = '48 mm';
+        document.getElementById('dim-height').value = 215; document.getElementById('val-height').innerText = '215 mm';
+        document.getElementById('dim-lidheight').value = 105; document.getElementById('val-lidheight').innerText = '105 mm';
+        
+        // Plastik Look der Kartusche
+        document.getElementById('color-body').value = "#ffffff"; bodyMat.color.set("#ffffff");
+        document.getElementById('color-lid').value = "#f8fafc"; lidMat.color.set("#f8fafc");
+        document.getElementById('slider-metalness').value = 0.0; bodyMat.metalness = 0.0;
+        document.getElementById('slider-lid-gloss').value = 0.4; lidMat.roughness = 0.6; // Matter Kunststoff
+        
+        updateDimensions();
+    });
+
+
+    const viewportWrapper = document.getElementById('viewport-wrapper');
+    const sidebarUI = document.getElementById('sidebar-ui');
+    const btnFullscreen = document.getElementById('btn-fullscreen');
+    let isFullscreen = false;
+
+    btnFullscreen.addEventListener('click', () => {
+        isFullscreen = !isFullscreen;
+        if(isFullscreen) {
+            sidebarUI.style.display = 'none';
+            viewportWrapper.classList.remove('h-[45vh]', 'md:h-full');
+            viewportWrapper.classList.add('h-[100dvh]', 'absolute', 'inset-0', 'z-50');
+            document.getElementById('icon-maximize').classList.add('hidden');
+            document.getElementById('icon-minimize').classList.remove('hidden');
+            document.getElementById('text-fullscreen').innerText = "Schließen";
+        } else {
+            sidebarUI.style.display = 'flex';
+            viewportWrapper.classList.remove('h-[100dvh]', 'absolute', 'inset-0', 'z-50');
+            viewportWrapper.classList.add('h-[45vh]', 'md:h-full');
+            document.getElementById('icon-maximize').classList.remove('hidden');
+            document.getElementById('icon-minimize').classList.add('hidden');
+            document.getElementById('text-fullscreen').innerText = "Vollbild";
+        }
+        setTimeout(handleResize, 50);
+    });
+
+    const dimInputs = ['dim-diam', 'dim-height', 'dim-lidheight'];
+    dimInputs.forEach(id => {
+        document.getElementById(id).addEventListener('input', (e) => {
+            document.getElementById(id.replace('dim-', 'val-')).innerText = e.target.value + ' mm';
+            updateDimensions(); 
+        });
+    });
+
+    document.getElementById('toggle-lid').addEventListener('change', () => updateDimensions());
+    document.getElementById('color-body').addEventListener('input', (e) => bodyMat.color.set(e.target.value));
+    document.getElementById('color-lid').addEventListener('input', (e) => lidMat.color.set(e.target.value));
+    document.getElementById('slider-metalness').addEventListener('input', (e) => bodyMat.metalness = parseFloat(e.target.value));
+    document.getElementById('slider-lid-gloss').addEventListener('input', (e) => { lidMat.roughness = 1.0 - parseFloat(e.target.value); });
+
+    document.getElementById('btn-autofit').addEventListener('click', () => {
+        document.getElementById('decal-scale').value = 1.0; 
+        document.getElementById('decal-x').value = 0.5; 
+        document.getElementById('decal-y').value = 0.5; 
+        updateTexture();
+    });
+
+    document.getElementById('file-upload').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        document.getElementById('upload-overlay').classList.add('opacity-100');
+        try {
+            if (file.type === 'application/pdf') {
+                const fileReader = new FileReader();
+                fileReader.onload = async function() {
+                    const typedarray = new Uint8Array(this.result);
+                    const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                    const page = await pdf.getPage(1);
+                    const viewport = page.getViewport({ scale: 4.0 }); 
+                    const tempCanvas = document.createElement('canvas');
+                    const tempCtx = tempCanvas.getContext('2d');
+                    tempCanvas.width = viewport.width;
+                    tempCanvas.height = viewport.height;
+                    await page.render({ canvasContext: tempCtx, viewport: viewport }).promise;
+                    const img = new Image();
+                    img.onload = () => enableDecalControls(img, "PDF in HD geladen!");
+                    img.src = tempCanvas.toDataURL('image/png');
+                };
+                fileReader.readAsArrayBuffer(file);
+            } else {
+                const url = URL.createObjectURL(file);
+                const img = new Image();
+                img.onload = () => enableDecalControls(img, "Bild geladen!");
+                img.src = url;
+            }
+        } catch (error) {
+            document.getElementById('upload-overlay').classList.remove('opacity-100');
+            document.getElementById('upload-text').innerText = "Fehler. Erneut versuchen.";
+        }
+    });
+
+    document.getElementById('decal-scale').addEventListener('input', updateTexture);
+    document.getElementById('decal-x').addEventListener('input', updateTexture);
+    document.getElementById('decal-y').addEventListener('input', updateTexture);
+
+    // --- GLB EXPORT (PC + Mobile) ---
+    document.getElementById('btn-export-glb').addEventListener('click', async () => {
+        const overlay = document.getElementById('export-overlay');
+        const modal = document.getElementById('download-ready-modal');
+        const finalLink = document.getElementById('final-download-link');
+        
+        overlay.classList.remove('opacity-0', 'pointer-events-none');
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        try {
+            const exporter = new THREE.GLTFExporter();
+            
+            // Wichtig: Wir exportieren nur die Gruppe, die gerade sichtbar ist!
+            const groupToExport = currentModelType === 'can' ? canGroup : cartGroup;
+
+            exporter.parse(groupToExport, async function ( gltf ) {
+                
+                const isGLB = gltf instanceof ArrayBuffer;
+                const blob = isGLB ? 
+                    new Blob([gltf], { type: 'model/gltf-binary' }) : 
+                    new Blob([JSON.stringify(gltf)], { type: 'text/plain' });
+                    
+                const filename = currentModelType === 'can' ? "Spruehdose.glb" : "Kartusche.glb";
+                const file = new File([blob], filename, { type: blob.type });
+
+                // Mobile Share Fallback
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    try {
+                        overlay.classList.add('opacity-0', 'pointer-events-none');
+                        await navigator.share({ files: [file], title: '3D Modell' });
+                        return; 
+                    } catch (err) {}
+                }
+
+                // PC Object URL
+                const objectUrl = URL.createObjectURL(blob);
+                const tempLink = document.createElement('a');
+                tempLink.style.display = 'none';
+                tempLink.href = objectUrl;
+                tempLink.download = filename;
+                document.body.appendChild(tempLink);
+                tempLink.click();
+                document.body.removeChild(tempLink);
+                
+                finalLink.href = objectUrl;
+                finalLink.download = filename;
+                
+                overlay.classList.add('opacity-0', 'pointer-events-none');
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+
+            }, { binary: true });
+
+        } catch(e) {
+            console.error(e);
+            alert("Fehler beim Erstellen der 3D-Datei.");
+            overlay.classList.add('opacity-0', 'pointer-events-none');
+        }
+    });
+
+    document.getElementById('final-download-link').addEventListener('click', () => {
+        setTimeout(() => { document.getElementById('download-ready-modal').classList.add('opacity-0', 'pointer-events-none'); }, 1500);
+    });
+    document.getElementById('btn-close-modal').addEventListener('click', () => {
+        document.getElementById('download-ready-modal').classList.add('opacity-0', 'pointer-events-none');
+    });
+
+    // START
+    updateDimensions(); 
+
+    function animate() {
+        requestAnimationFrame(animate);
+        controls.update(); 
+        renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener('resize', handleResize);
+
+</script>
+</body>
+</html>

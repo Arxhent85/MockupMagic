@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MockupMagic 3D - Pro Edition</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            900: '#0c4a6e',
+                        }
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+                        'inner-soft': 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.02)',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Three.js & Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/GLTFExporter.js"></script>
+    <!-- PDF.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+    </script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #f8fafc;
+            touch-action: none;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100dvh;
+            width: 100vw;
+            position: relative;
+        }
+
+        @media (min-width: 1024px) {
+            .app-container {
+                flex-direction: row;
+            }
+        }
+
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+            cursor: grab;
+            outline: none;
+        }
+
+        #canvas-container:active {
+            cursor: grabbing;
+        }
+
+        /* Custom sleek scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 8px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Modernized Range Slider */
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            outline: none;
+            transition: background 0.2s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #0ea5e9;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.1s, background 0.2s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            background: #0284c7;
+        }
+
+        /* Clean Color Picker */
+        input[type="color"] {
+            -webkit-appearance: none;
+            padding: 0;
+            border: none;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            height: 40px;
+            width: 100%;
+        }
+
+        input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+
+        input[type="color"]::-webkit-color-swatch {
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+        }
+
+        .section-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #64748b;
+            margin-bottom: 0.75rem;
+            letter-spacing: 0.01em;
+        }
+
+        .control-panel {
+            background: white;
+            padding: 1.25rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.03);
+            border: 1px solid #f1f5f9;
+            margin-bottom: 1rem;
+        }
+
+        /* Smooth transitions */
+        .transition-transform {
+            transition-property: transform;
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            transition-duration: 150ms;
+        }
+    </style>
+</head>
+
+<body class="text-slate-800 antialiased selection:bg-brand-100 selection:text-brand-900">
+
+    <div class="app-container">
+
+        <!-- 3D VIEWPORT -->
+        <div id="viewport-wrapper"
+            class="w-full h-[50vh] lg:h-full lg:flex-1 relative border-b lg:border-b-0 lg:border-r border-slate-200 bg-gradient-to-br from-slate-50 to-slate-200 z-10 transition-all duration-300 shadow-inner-soft">
+
+            <!-- Subtle Help Tip -->
+            <div
+                class="absolute top-5 left-5 bg-white/70 backdrop-blur-md px-3 py-2 rounded-lg shadow-sm z-20 text-[11px] text-slate-500 pointer-events-none border border-white/60 font-medium tracking-wide">
+                <span class="text-slate-700 font-semibold mr-1">Camera:</span> Drag to rotate, pinch to zoom
+            </div>
+
+            <!-- Fullscreen Button -->
+            <button id="btn-fullscreen"
+                class="absolute top-5 right-5 bg-white/80 hover:bg-white backdrop-blur-md p-2.5 rounded-xl shadow-sm hover:shadow z-20 text-slate-700 transition-all border border-slate-200/60 active:scale-95 group focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">
+                <svg id="icon-maximize" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2"
+                    class="group-hover:text-brand-600 transition-colors">
+                    <path
+                        d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3">
+                    </path>
+                </svg>
+                <svg id="icon-minimize" class="hidden" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    class="group-hover:text-brand-600 transition-colors">
+                    <path
+                        d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3">
+                    </path>
+                </svg>
+            </button>
+
+            <!-- Export Loading Overlay -->
+            <div id="export-overlay"
+                class="absolute inset-0 bg-slate-900/40 backdrop-blur-md z-30 flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 rounded-lg">
+                <div class="bg-white px-6 py-5 rounded-2xl shadow-xl flex flex-col items-center">
+                    <svg class="animate-spin h-8 w-8 text-brand-600 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                        </circle>
+                        <path class="opacity-75" fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                        </path>
+                    </svg>
+                    <p class="text-slate-800 font-semibold text-sm">Preparing 3D model...</p>
+                    <p class="text-slate-400 text-xs mt-1">This may take a moment.</p>
+                </div>
+            </div>
+
+            <div id="canvas-container"></div>
+        </div>
+
+        <!-- SIDEBAR CONTROLS -->
+        <div id="sidebar-ui"
+            class="w-full lg:w-[420px] bg-slate-50 flex flex-col z-0 h-[50vh] lg:h-full overflow-hidden order-last lg:order-last">
+
+            <!-- Header -->
+            <div
+                class="px-6 py-5 bg-white border-b border-slate-200 shrink-0 flex justify-between items-center shadow-sm z-10">
+                <h1 class="text-xl font-bold flex items-center gap-2.5 text-slate-800 tracking-tight">
+                    <div class="bg-brand-100 p-1.5 rounded-lg text-brand-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2.5">
+                            <path
+                                d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
+                            </path>
+                            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                        </svg>
+                    </div>
+                    MockupMagic
+                </h1>
+            </div>
+
+            <div class="p-5 flex-1 overflow-y-auto space-y-4 pb-24 lg:pb-6 relative">
+
+                <!-- SECTION 1: DECAL UPLOAD (Moved to top for visibility) -->
+                <div class="control-panel border-2 border-brand-100 bg-brand-50/30">
+                    <h2 class="section-title text-brand-900 font-semibold mb-3">Label Design</h2>
+
+                    <label
+                        class="flex flex-col items-center justify-center w-full h-20 border-2 border-dashed border-brand-300 rounded-xl cursor-pointer bg-white hover:bg-brand-50 hover:border-brand-400 transition-all duration-200 relative overflow-hidden group shadow-sm focus-within:ring-2 focus-within:ring-brand-500 focus-within:ring-offset-2">
+                        <div id="upload-overlay"
+                            class="absolute inset-0 bg-brand-500 flex items-center justify-center opacity-0 transition-opacity z-10">
+                            <span class="text-white font-medium text-sm animate-pulse">Processing...</span>
+                        </div>
+                        <div class="flex flex-col items-center justify-center gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2"
+                                class="text-brand-500 group-hover:transform group-hover:-translate-y-1 transition-transform">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                            <span id="upload-text" class="text-sm text-brand-700 font-medium">Upload PDF / Image</span>
+                        </div>
+                        <!-- Accept-Types optimized for broad device support -->
+                        <input type="file" id="file-upload" class="hidden"
+                            accept=".pdf, .png, .jpg, .jpeg, application/pdf, image/*">
+                    </label>
+
+                    <!-- Decal Position Controls -->
+                    <div id="decal-controls"
+                        class="space-y-4 mt-4 opacity-40 pointer-events-none transition-opacity duration-300">
+                        <button id="btn-autofit"
+                            class="w-full py-2 bg-white border border-slate-200 hover:border-brand-300 hover:bg-brand-50 text-brand-700 text-xs font-semibold rounded-lg shadow-sm transition-colors active:scale-95 flex items-center justify-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2">
+                                <path
+                                    d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3">
+                                </path>
+                            </svg>
+                            Fit to Can
+                        </button>
+
+                        <div class="space-y-4 pt-4 border-t border-brand-100">
+                            <div>
+                                <div class="flex justify-between text-[11px] font-medium text-slate-500 mb-1.5">
+                                    <label>Scale (Wrap)</label></div>
+                                <input type="range" id="decal-scale" min="0.1" max="1.5" step="0.01" value="0.95">
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <div class="flex justify-between text-[11px] font-medium text-slate-500 mb-1.5">
+                                        <label>Rotate</label></div>
+                                    <input type="range" id="decal-x" min="0" max="1" step="0.01" value="0.5">
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-[11px] font-medium text-slate-500 mb-1.5">
+                                        <label>Vertical</label></div>
+                                    <input type="range" id="decal-y" min="0" max="1" step="0.01" value="0.5">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 2: PRODUCT TYPE -->
+                <div class="control-panel">
+                    <h2 class="section-title">Select Product</h2>
+                    <div class="flex gap-2">
+                        <button id="btn-mode-can" class="flex-1 py-2 px-3 rounded-lg border-2 text-sm font-semibold transition-colors bg-brand-50 border-brand-500 text-brand-700 shadow-sm">Spray Can</button>
+                        <button id="btn-mode-cart" class="flex-1 py-2 px-3 rounded-lg border-2 border-transparent text-sm font-semibold transition-colors bg-white text-slate-600 hover:bg-slate-50 hover:border-slate-200 shadow-sm">Silicone Cartridge</button>
+                    </div>
+                </div>
+
+                <!-- SECTION 3: DIMENSIONS -->
+                <div class="control-panel">
+                    <h2 id="title-dimensions" class="section-title">Can Dimensions</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between text-xs text-slate-500 mb-1.5">
+                                <label>Diameter</label>
+                                <span id="val-diam" class="font-semibold text-slate-700">65 mm</span>
+                            </div>
+                            <input type="range" id="dim-diam" min="40" max="90" step="1" value="65">
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs text-slate-500 mb-1.5">
+                                <label>Body Height</label>
+                                <span id="val-height" class="font-semibold text-slate-700">145 mm</span>
+                            </div>
+                            <input type="range" id="dim-height" min="50" max="300" step="1" value="145">
+                        </div>
+
+                        <div class="pt-4 mt-2 border-t border-slate-100">
+                            <label class="flex items-center justify-between mb-3 cursor-pointer group">
+                                <span
+                                    class="text-xs text-slate-700 font-semibold group-hover:text-brand-600 transition-colors">Include
+                                    Cap</span>
+                                <div class="relative">
+                                    <input type="checkbox" id="toggle-lid" checked class="sr-only peer">
+                                    <div
+                                        class="w-9 h-5 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-brand-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-500">
+                                    </div>
+                                </div>
+                            </label>
+                            <div class="flex justify-between text-xs text-slate-500 mb-1.5">
+                                <label id="label-lid">Cap Height</label>
+                                <span id="val-lidheight" class="font-semibold text-slate-700">45 mm</span>
+                            </div>
+                            <input type="range" id="dim-lidheight" min="10" max="100" step="1" value="45">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 4: MATERIALS -->
+                <div class="control-panel">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="section-title m-0">Materials & Finish</h2>
+                        <button id="preset-mone"
+                            class="text-[10px] py-1 px-2.5 border border-slate-200 rounded-md bg-white hover:bg-slate-50 font-medium text-slate-600 transition-colors shadow-sm active:scale-95">Reset
+                            to Standard</button>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 mb-5">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-500 mb-1.5">Body Color</label>
+                            <input type="color" id="color-body" value="#d1d5db" class="w-full">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-500 mb-1.5">Cap Color</label>
+                            <input type="color" id="color-lid" value="#111111" class="w-full">
+                        </div>
+                    </div>
+
+                    <div class="space-y-4 pt-4 border-t border-slate-100">
+                        <div>
+                            <div class="flex justify-between text-xs font-medium text-slate-500 mb-1.5">
+                                <label>Body Metalness</label>
+                            </div>
+                            <input type="range" id="slider-metalness" min="0" max="1" step="0.05" value="1.0">
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs font-medium text-slate-500 mb-1.5">
+                                <label>Cap Gloss</label>
+                            </div>
+                            <input type="range" id="slider-lid-gloss" min="0" max="1" step="0.05" value="0.8">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sticky bottom spacing for mobile -->
+                <div class="h-4 lg:hidden"></div>
+            </div>
+
+            <!-- GENERATE BUTTON (Sticky Bottom) -->
+            <div
+                class="absolute bottom-0 left-0 lg:relative w-full p-4 lg:p-5 bg-white/80 backdrop-blur-md lg:bg-white border-t border-slate-200 shrink-0 z-20">
+                <button id="btn-export-glb"
+                    class="w-full bg-brand-600 hover:bg-brand-700 text-white font-semibold py-3.5 px-4 rounded-xl shadow-[0_4px_14px_0_rgba(2,132,199,0.39)] hover:shadow-[0_6px_20px_rgba(2,132,199,0.23)] flex justify-center items-center gap-2 transition-all transform hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Download .GLB Model
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 3D LOGIC SCRIPTS -->
+    <script>
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(40, container.clientWidth / container.clientHeight, 0.1, 100);
+        camera.position.set(0, 0, 35);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.outputEncoding = THREE.sRGBEncoding;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        container.appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.target.set(0, 0, 0);
+        controls.minDistance = 15;
+        controls.maxDistance = 60;
+
+        // Enhanced lighting setup for better highlights
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+
+        const mainLight = new THREE.DirectionalLight(0xffffff, 1.2);
+        mainLight.position.set(10, 20, 15);
+        mainLight.castShadow = true;
+        mainLight.shadow.mapSize.width = 1024;
+        mainLight.shadow.mapSize.height = 1024;
+        scene.add(mainLight);
+
+        const fillLight = new THREE.DirectionalLight(0xe2e8f0, 0.6);
+        fillLight.position.set(-15, 5, -10);
+        scene.add(fillLight);
+
+        const rimLight = new THREE.DirectionalLight(0xffffff, 0.5);
+        rimLight.position.set(0, 10, -20);
+        scene.add(rimLight);
+
+        // Default Materials
+        const bodyMat = new THREE.MeshStandardMaterial({ color: 0xd1d5db, metalness: 1.0, roughness: 0.25 });
+        const lidMat = new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.1, roughness: 0.2 });
+
+        // High-res Canvas for Label UV Mapping
+        const uvCanvas = document.createElement('canvas');
+        uvCanvas.width = 4096; uvCanvas.height = 4096;
+        const uvCtx = uvCanvas.getContext('2d');
+        uvCtx.fillStyle = 'rgba(255, 255, 255, 0)';
+        uvCtx.clearRect(0, 0, uvCanvas.width, uvCanvas.height);
+
+        const canvasTexture = new THREE.CanvasTexture(uvCanvas);
+        canvasTexture.encoding = THREE.sRGBEncoding;
+        canvasTexture.flipY = false;
+        canvasTexture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+
+        const labelMat = new THREE.MeshStandardMaterial({
+            map: canvasTexture,
+            transparent: true,
+            alphaTest: 0.05,
+            metalness: 0.1,
+            roughness: 0.3,
+            side: THREE.FrontSide
+        });
+
+        let currentModelType = 'can'; // 'can' or 'cartridge'
+
+        const masterGroup = new THREE.Group();
+        scene.add(masterGroup);
+        const canGroup = new THREE.Group();
+        masterGroup.add(canGroup);
+
+        // Geometries
+        const geoCylinder = new THREE.CylinderGeometry(1, 1, 1, 64);
+        const geoCylinderOpen = new THREE.CylinderGeometry(1, 1, 1, 64, 1, true); // true = openEnded (no top/bottom cap)
+        const geoTorus = new THREE.TorusGeometry(1, 0.05, 16, 64);
+        const geoDome = new THREE.SphereGeometry(1, 64, 32, 0, Math.PI * 2, 0, Math.PI / 2);
+
+        // Meshes
+        const meshBody = new THREE.Mesh(geoCylinder, bodyMat);
+        meshBody.castShadow = true; meshBody.receiveShadow = true;
+
+        // Label mesh uses open cylinder to prevent texture bleeding onto the bottom/top faces
+        const meshLabel = new THREE.Mesh(geoCylinderOpen, labelMat);
+        meshLabel.visible = false;
+
+        const meshRimBottom = new THREE.Mesh(geoTorus, bodyMat);
+        meshRimBottom.rotation.x = Math.PI / 2;
+        meshRimBottom.castShadow = true;
+
+        const meshRimTop = new THREE.Mesh(geoTorus, bodyMat);
+        meshRimTop.rotation.x = Math.PI / 2;
+
+        const meshDome = new THREE.Mesh(geoDome, bodyMat);
+        meshDome.scale.y = 0.4;
+
+        const meshValve = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.4, 32), bodyMat);
+
+        const meshLid = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 1, 64), lidMat);
+        meshLid.castShadow = true;
+
+        canGroup.add(meshBody, meshLabel, meshRimBottom, meshRimTop, meshDome, meshValve, meshLid);
+
+        // --- NEW: Cartridge Group ---
+        const cartGroup = new THREE.Group();
+        cartGroup.visible = false;
+        masterGroup.add(cartGroup);
+        
+        const meshCartBody = new THREE.Mesh(geoCylinder, bodyMat);
+        meshCartBody.castShadow = true; meshCartBody.receiveShadow = true;
+        
+        const meshCartLabel = new THREE.Mesh(geoCylinderOpen, labelMat);
+        meshCartLabel.visible = false;
+        
+        const meshCartTopLip = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 1, 64), bodyMat);
+        meshCartTopLip.castShadow = true; meshCartTopLip.receiveShadow = true;
+        
+        const meshCartTopFlat = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 1, 64), bodyMat);
+        meshCartTopFlat.castShadow = true; meshCartTopFlat.receiveShadow = true;
+        
+        const meshCartThread = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 1, 32), bodyMat);
+        meshCartThread.castShadow = true; meshCartThread.receiveShadow = true;
+        
+        const meshCartNozzleBase = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.32, 1, 32), lidMat);
+        meshCartNozzleBase.castShadow = true; meshCartNozzleBase.receiveShadow = true;
+        
+        const meshCartNozzleTip = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.2, 1, 32), lidMat);
+        meshCartNozzleTip.castShadow = true; meshCartNozzleTip.receiveShadow = true;
+        
+        const meshCartRim = new THREE.Mesh(new THREE.CylinderGeometry(1.02, 1.02, 0.1, 64), bodyMat);
+        meshCartRim.castShadow = true; meshCartRim.receiveShadow = true;
+        
+        cartGroup.add(meshCartBody, meshCartLabel, meshCartTopLip, meshCartTopFlat, meshCartThread, meshCartNozzleBase, meshCartNozzleTip, meshCartRim);
+
+        function updateCanDimensions() {
+            const d_mm = parseFloat(document.getElementById('dim-diam').value);
+            const h_mm = parseFloat(document.getElementById('dim-height').value);
+            const l_mm = parseFloat(document.getElementById('dim-lidheight').value);
+
+            const r = (d_mm / 2) / 10;
+            const h = h_mm / 10;
+            const l = l_mm / 10;
+
+            if (currentModelType === 'can') {
+                canGroup.visible = true;
+                cartGroup.visible = false;
+
+                meshBody.scale.set(r, h, r); meshBody.position.y = h / 2;
+                meshLabel.scale.set(r * 1.005, h, r * 1.005); meshLabel.position.y = h / 2;
+                meshRimBottom.scale.set(r, r, r); meshRimBottom.position.y = 0;
+                meshRimTop.scale.set(r, r, r); meshRimTop.position.y = h;
+                meshDome.scale.set(r * 0.95, r * 0.4, r * 0.95); meshDome.position.y = h;
+                meshValve.position.y = h + (r * 0.4);
+                meshLid.scale.set(r, l, r); meshLid.position.y = h + (l / 2);
+
+                let totalHeight = h;
+                if (meshLid.visible) totalHeight += l;
+                canGroup.position.y = - (totalHeight / 2);
+
+            } else if (currentModelType === 'cartridge') {
+                canGroup.visible = false;
+                cartGroup.visible = true;
+
+                meshCartBody.scale.set(r, h, r); meshCartBody.position.y = h / 2;
+                meshCartLabel.scale.set(r * 1.005, h, r * 1.005); meshCartLabel.position.y = h / 2;
+                meshCartRim.scale.set(r, 1, r); meshCartRim.position.y = 0.05;
+
+                const lipH = 0.15;
+                meshCartTopLip.scale.set(r, lipH, r);
+                meshCartTopLip.position.y = h + (lipH / 2);
+
+                const flatH = 0.05;
+                meshCartTopFlat.scale.set(r, flatH, r);
+                meshCartTopFlat.position.y = h + lipH - (flatH / 2);
+
+                const threadH = 1.0; 
+                meshCartThread.scale.set(r, threadH, r);
+                meshCartThread.position.y = h + lipH + (threadH / 2);
+
+                const nozzleBaseH = l * 0.15;
+                const nozzleTipH = l * 0.85;
+
+                meshCartNozzleBase.scale.set(r, nozzleBaseH, r);
+                meshCartNozzleBase.position.y = h + lipH + (nozzleBaseH / 2);
+
+                meshCartNozzleTip.scale.set(r, nozzleTipH, r);
+                meshCartNozzleTip.position.y = h + lipH + nozzleBaseH + (nozzleTipH / 2);
+
+                let totalHeight = h + lipH + threadH;
+                if (meshCartNozzleBase.visible) totalHeight = h + lipH + nozzleBaseH + nozzleTipH;
+                cartGroup.position.y = - (totalHeight / 2);
+            }
+
+            if (uploadedImage) updateTexture();
+        }
+
+        let uploadedImage = null;
+        function updateTexture() {
+            if (!uploadedImage) return;
+            const wrapPercent = parseFloat(document.getElementById('decal-scale').value);
+            const rotX = parseFloat(document.getElementById('decal-x').value);
+            const posY = parseFloat(document.getElementById('decal-y').value);
+            const d_mm = parseFloat(document.getElementById('dim-diam').value);
+            const h_mm = parseFloat(document.getElementById('dim-height').value);
+
+            const physCircumference = Math.PI * d_mm;
+            const physHeight = h_mm;
+            const cw = uvCanvas.width;
+            const ch = uvCanvas.height;
+            uvCtx.clearRect(0, 0, cw, ch);
+
+            const imgAspect = uploadedImage.width / uploadedImage.height;
+            const targetPhysWidth = physCircumference * wrapPercent;
+            const targetPhysHeight = targetPhysWidth / imgAspect;
+
+            const drawW = (targetPhysWidth / physCircumference) * cw;
+            const drawH = (targetPhysHeight / physHeight) * ch;
+            const centerX = rotX * cw;
+            const centerY = posY * ch;
+            const startX = centerX - (drawW / 2);
+            const startY = centerY - (drawH / 2);
+
+            uvCtx.save();
+            uvCtx.translate(0, ch);
+            uvCtx.scale(1, -1);
+            uvCtx.drawImage(uploadedImage, startX, startY, drawW, drawH);
+            if (startX < 0) uvCtx.drawImage(uploadedImage, startX + cw, startY, drawW, drawH);
+            if (startX + drawW > cw) uvCtx.drawImage(uploadedImage, startX - cw, startY, drawW, drawH);
+            uvCtx.restore();
+            canvasTexture.needsUpdate = true;
+        }
+
+        function enableDecalControls(img, successMessage) {
+            uploadedImage = img;
+            meshLabel.visible = true;
+            meshCartLabel.visible = true;
+
+            const decalControls = document.getElementById('decal-controls');
+            decalControls.classList.remove('opacity-40', 'pointer-events-none');
+            decalControls.classList.add('opacity-100');
+
+            document.getElementById('decal-scale').value = 1.0;
+            document.getElementById('decal-x').value = 0.5;
+            document.getElementById('decal-y').value = 0.5;
+            updateTexture();
+
+            const textEl = document.getElementById('upload-text');
+            const overlay = document.getElementById('upload-overlay');
+            overlay.classList.remove('opacity-100');
+            textEl.innerText = successMessage;
+            textEl.classList.add('text-green-600');
+
+            setTimeout(() => {
+                textEl.innerText = "Replace PDF/Image";
+                textEl.classList.remove('text-green-600');
+            }, 2500);
+        }
+
+        function handleResize() {
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            renderer.setSize(width, height);
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+        }
+
+        // --- FULLSCREEN LOGIC ---
+        const viewportWrapper = document.getElementById('viewport-wrapper');
+        const sidebarUI = document.getElementById('sidebar-ui');
+        const btnFullscreen = document.getElementById('btn-fullscreen');
+        let isFullscreen = false;
+
+        btnFullscreen.addEventListener('click', () => {
+            isFullscreen = !isFullscreen;
+
+            if (isFullscreen) {
+                sidebarUI.style.display = 'none';
+                viewportWrapper.classList.remove('h-[50vh]', 'lg:h-full');
+                viewportWrapper.classList.add('h-[100dvh]', 'absolute', 'inset-0', 'z-50');
+
+                document.getElementById('icon-maximize').classList.add('hidden');
+                document.getElementById('icon-minimize').classList.remove('hidden');
+            } else {
+                sidebarUI.style.display = 'flex';
+                viewportWrapper.classList.remove('h-[100dvh]', 'absolute', 'inset-0', 'z-50');
+                viewportWrapper.classList.add('h-[50vh]', 'lg:h-full');
+
+                document.getElementById('icon-maximize').classList.remove('hidden');
+                document.getElementById('icon-minimize').classList.add('hidden');
+            }
+
+            setTimeout(handleResize, 50);
+        });
+
+        // --- INPUT EVENT LISTENERS ---
+        const dimInputs = ['dim-diam', 'dim-height', 'dim-lidheight'];
+        dimInputs.forEach(id => {
+            document.getElementById(id).addEventListener('input', (e) => {
+                document.getElementById(id.replace('dim-', 'val-')).innerText = e.target.value + ' mm';
+                updateCanDimensions();
+            });
+        });
+
+        document.getElementById('toggle-lid').addEventListener('change', (e) => {
+            meshLid.visible = e.target.checked;
+            meshCartNozzleBase.visible = e.target.checked;
+            meshCartNozzleTip.visible = e.target.checked;
+            updateCanDimensions();
+        });
+
+        const btnCan = document.getElementById('btn-mode-can');
+        const btnCart = document.getElementById('btn-mode-cart');
+
+        if (btnCan && btnCart) {
+            btnCan.addEventListener('click', () => {
+                currentModelType = 'can';
+                btnCan.className = "flex-1 py-2 px-3 rounded-lg border-2 text-sm font-semibold transition-colors bg-brand-50 border-brand-500 text-brand-700 shadow-sm";
+                btnCart.className = "flex-1 py-2 px-3 rounded-lg border-2 border-transparent text-sm font-semibold transition-colors bg-white text-slate-600 hover:bg-slate-50 hover:border-slate-200 shadow-sm";
+                
+                document.getElementById('title-dimensions').innerText = 'Can Dimensions';
+                document.getElementById('label-lid').innerText = 'Cap Height';
+                
+                document.getElementById('dim-diam').value = 65; document.getElementById('val-diam').innerText = '65 mm';
+                document.getElementById('dim-height').value = 145; document.getElementById('val-height').innerText = '145 mm';
+                document.getElementById('dim-lidheight').value = 45; document.getElementById('val-lidheight').innerText = '45 mm';
+                
+                document.getElementById('color-body').value = "#d1d5db"; bodyMat.color.set("#d1d5db");
+                document.getElementById('color-lid').value = "#111111"; lidMat.color.set("#111111");
+                document.getElementById('slider-metalness').value = 1.0; bodyMat.metalness = 1.0;
+                document.getElementById('slider-lid-gloss').value = 0.8; lidMat.roughness = 0.2;
+                
+                document.getElementById('toggle-lid').checked = true; meshLid.visible = true;
+                updateCanDimensions();
+            });
+
+            btnCart.addEventListener('click', () => {
+                currentModelType = 'cartridge';
+                btnCart.className = "flex-1 py-2 px-3 rounded-lg border-2 text-sm font-semibold transition-colors bg-brand-50 border-brand-500 text-brand-700 shadow-sm";
+                btnCan.className = "flex-1 py-2 px-3 rounded-lg border-2 border-transparent text-sm font-semibold transition-colors bg-white text-slate-600 hover:bg-slate-50 hover:border-slate-200 shadow-sm";
+                
+                document.getElementById('title-dimensions').innerText = 'Cartridge Dimensions';
+                document.getElementById('label-lid').innerText = 'Nozzle Height';
+                
+                document.getElementById('dim-diam').value = 48; document.getElementById('val-diam').innerText = '48 mm';
+                document.getElementById('dim-height').value = 215; document.getElementById('val-height').innerText = '215 mm';
+                document.getElementById('dim-lidheight').value = 105; document.getElementById('val-lidheight').innerText = '105 mm';
+                
+                document.getElementById('color-body').value = "#ffffff"; bodyMat.color.set("#ffffff");
+                document.getElementById('color-lid').value = "#f8fafc"; lidMat.color.set("#f8fafc");
+                document.getElementById('slider-metalness').value = 0.0; bodyMat.metalness = 0.0;
+                document.getElementById('slider-lid-gloss').value = 0.4; lidMat.roughness = 0.6;
+                
+                document.getElementById('toggle-lid').checked = true; meshCartNozzleBase.visible = true; meshCartNozzleTip.visible = true;
+                updateCanDimensions();
+            });
+        }
+
+        document.getElementById('color-body').addEventListener('input', (e) => bodyMat.color.set(e.target.value));
+        document.getElementById('color-lid').addEventListener('input', (e) => lidMat.color.set(e.target.value));
+        document.getElementById('slider-metalness').addEventListener('input', (e) => bodyMat.metalness = parseFloat(e.target.value));
+        document.getElementById('slider-lid-gloss').addEventListener('input', (e) => {
+            lidMat.roughness = 1.0 - parseFloat(e.target.value);
+        });
+
+        document.getElementById('btn-autofit').addEventListener('click', () => {
+            document.getElementById('decal-scale').value = 1.0;
+            document.getElementById('decal-x').value = 0.5;
+            document.getElementById('decal-y').value = 0.5;
+            updateTexture();
+        });
+
+        document.getElementById('preset-mone').addEventListener('click', () => {
+            if (currentModelType === 'can') {
+                document.getElementById('dim-diam').value = 65; document.getElementById('val-diam').innerText = '65 mm';
+                document.getElementById('dim-height').value = 145; document.getElementById('val-height').innerText = '145 mm';
+                document.getElementById('dim-lidheight').value = 45; document.getElementById('val-lidheight').innerText = '45 mm';
+                document.getElementById('color-body').value = "#d1d5db"; bodyMat.color.set("#d1d5db");
+                document.getElementById('color-lid').value = "#111111"; lidMat.color.set("#111111");
+                document.getElementById('slider-metalness').value = 1.0; bodyMat.metalness = 1.0;
+                document.getElementById('slider-lid-gloss').value = 0.8; lidMat.roughness = 0.2;
+            } else {
+                document.getElementById('dim-diam').value = 48; document.getElementById('val-diam').innerText = '48 mm';
+                document.getElementById('dim-height').value = 215; document.getElementById('val-height').innerText = '215 mm';
+                document.getElementById('dim-lidheight').value = 105; document.getElementById('val-lidheight').innerText = '105 mm';
+                document.getElementById('color-body').value = "#ffffff"; bodyMat.color.set("#ffffff");
+                document.getElementById('color-lid').value = "#f8fafc"; lidMat.color.set("#f8fafc");
+                document.getElementById('slider-metalness').value = 0.0; bodyMat.metalness = 0.0;
+                document.getElementById('slider-lid-gloss').value = 0.4; lidMat.roughness = 0.6;
+            }
+            document.getElementById('toggle-lid').checked = true; 
+            meshLid.visible = true;
+            meshCartNozzleBase.visible = true;
+            meshCartNozzleTip.visible = true;
+            updateCanDimensions();
+        });
+
+        // --- UPLOAD PARSING ---
+        document.getElementById('file-upload').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            document.getElementById('upload-overlay').classList.add('opacity-100');
+            try {
+                if (file.type === 'application/pdf') {
+                    const fileReader = new FileReader();
+                    fileReader.onload = async function () {
+                        const typedarray = new Uint8Array(this.result);
+                        const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                        const page = await pdf.getPage(1);
+                        const viewport = page.getViewport({ scale: 4.0 });
+                        const tempCanvas = document.createElement('canvas');
+                        const tempCtx = tempCanvas.getContext('2d');
+                        tempCanvas.width = viewport.width;
+                        tempCanvas.height = viewport.height;
+                        await page.render({ canvasContext: tempCtx, viewport: viewport }).promise;
+                        const img = new Image();
+                        img.onload = () => enableDecalControls(img, "PDF Loaded in HD!");
+                        img.src = tempCanvas.toDataURL('image/png');
+                    };
+                    fileReader.readAsArrayBuffer(file);
+                } else {
+                    const url = URL.createObjectURL(file);
+                    const img = new Image();
+                    img.onload = () => enableDecalControls(img, "Image Loaded!");
+                    img.src = url;
+                }
+            } catch (error) {
+                console.error(error);
+                document.getElementById('upload-overlay').classList.remove('opacity-100');
+                document.getElementById('upload-text').innerText = "Error. Try again.";
+                document.getElementById('upload-text').classList.add('text-red-500');
+            }
+        });
+
+        document.getElementById('decal-scale').addEventListener('input', updateTexture);
+        document.getElementById('decal-x').addEventListener('input', updateTexture);
+        document.getElementById('decal-y').addEventListener('input', updateTexture);
+
+
+        // --- PERFECTED GLB EXPORT SCRIPT ---
+        document.getElementById('btn-export-glb').addEventListener('click', async () => {
+            const overlay = document.getElementById('export-overlay');
+            overlay.classList.remove('opacity-0', 'pointer-events-none');
+
+            // Let UI update
+            await new Promise(resolve => setTimeout(resolve, 50));
+
+            try {
+                const exporter = new THREE.GLTFExporter();
+
+                // In Three.js r128, options must be the 3rd argument. 
+                // Setting binary: true returns an ArrayBuffer or DataView instead of JSON string
+                const groupToExport = currentModelType === 'can' ? canGroup : cartGroup;
+
+                exporter.parse(groupToExport, function (gltf) {
+
+                    let blob;
+                    // Defensively determine if the output is binary data or unparsed JSON
+                    if (gltf instanceof ArrayBuffer) {
+                        blob = new Blob([gltf], { type: 'model/gltf-binary' });
+                    } else if (gltf instanceof DataView) {
+                        blob = new Blob([gltf.buffer], { type: 'model/gltf-binary' });
+                    } else {
+                        // Fallback to text if binary generation failed
+                        blob = new Blob([JSON.stringify(gltf)], { type: 'text/plain' });
+                    }
+
+                    // Make sure extension matches the Blob type
+                    const baseName = currentModelType === 'can' ? "SprayCan" : "SiliconeCartridge";
+                    const filename = (blob.type === 'model/gltf-binary') ? `${baseName}.glb` : `${baseName}.gltf`;
+
+                    // Create highly-compatible download link instead of navigator.share
+                    // This guarantees file delivery without the 15-byte object corruption bug
+                    const objectUrl = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = objectUrl;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+
+                    // Cleanup
+                    setTimeout(() => {
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(objectUrl);
+                        overlay.classList.add('opacity-0', 'pointer-events-none');
+                    }, 100);
+
+                }, { binary: true });
+
+            } catch (e) {
+                console.error("Export Failed:", e);
+                alert("Error creating 3D file.");
+                overlay.classList.add('opacity-0', 'pointer-events-none');
+            }
+        });
+
+        // --- INITIALIZE & RENDER LOOP ---
+        updateCanDimensions();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', handleResize);
+
+    </script>
+</body>
+
+</html>
