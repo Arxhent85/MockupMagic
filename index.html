@@ -9,6 +9,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: {
@@ -41,6 +42,14 @@
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
     </script>
+    <!-- Dark Mode Initializer -->
+    <script>
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark')
+        } else {
+            document.documentElement.classList.remove('dark')
+        }
+    </script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -51,6 +60,11 @@
             background-color: #f8fafc;
             touch-action: none;
             font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s ease;
+        }
+
+        .dark body {
+            background-color: #0f172a;
         }
 
         .app-container {
@@ -92,8 +106,16 @@
             border-radius: 8px;
         }
 
+        .dark ::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+
         ::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
+        }
+
+        .dark ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
         }
 
         /* Modernized Range Slider */
@@ -105,6 +127,10 @@
             border-radius: 4px;
             outline: none;
             transition: background 0.2s;
+        }
+
+        .dark input[type="range"] {
+            background: #334155;
         }
 
         input[type="range"]::-webkit-slider-thumb {
@@ -145,6 +171,10 @@
             border-radius: 8px;
         }
 
+        .dark input[type="color"]::-webkit-color-swatch {
+            border-color: #475569;
+        }
+
         .section-title {
             font-size: 0.85rem;
             font-weight: 600;
@@ -160,6 +190,13 @@
             box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.03);
             border: 1px solid #f1f5f9;
             margin-bottom: 1rem;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .dark .control-panel {
+            background: #1e293b;
+            border-color: #334155;
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.2);
         }
 
         /* Smooth transitions */
@@ -171,23 +208,25 @@
     </style>
 </head>
 
-<body class="text-slate-800 antialiased selection:bg-brand-100 selection:text-brand-900">
+<body
+    class="text-slate-800 dark:text-slate-100 antialiased selection:bg-brand-100 dark:selection:bg-brand-900 selection:text-brand-900 dark:selection:text-brand-100 transition-colors duration-300">
 
-    <div class="app-container">
+    <div class="app-container bg-f8fafc dark:bg-[#0f172a]">
 
         <!-- 3D VIEWPORT -->
         <div id="viewport-wrapper"
-            class="w-full h-[50vh] lg:h-full lg:flex-1 relative border-b lg:border-b-0 lg:border-r border-slate-200 bg-gradient-to-br from-slate-50 to-slate-200 z-10 transition-all duration-300 shadow-inner-soft">
+            class="w-full h-[50vh] lg:h-full lg:flex-1 relative border-b lg:border-b-0 lg:border-r border-slate-200 dark:border-slate-800 bg-gradient-to-br z-10 transition-all duration-300 shadow-inner-soft">
 
             <!-- Subtle Help Tip -->
             <div
-                class="absolute top-5 left-5 bg-white/70 backdrop-blur-md px-3 py-2 rounded-lg shadow-sm z-20 text-[11px] text-slate-500 pointer-events-none border border-white/60 font-medium tracking-wide">
-                <span class="text-slate-700 font-semibold mr-1">Camera:</span> Drag to rotate, pinch to zoom
+                class="absolute top-5 left-5 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md px-3 py-2 rounded-lg shadow-sm z-20 text-[11px] text-slate-500 dark:text-slate-400 pointer-events-none border border-white/60 dark:border-slate-700/60 font-medium tracking-wide transition-colors duration-300">
+                <span class="text-slate-700 dark:text-slate-300 font-semibold mr-1">Camera:</span> Drag to rotate, pinch
+                to zoom
             </div>
 
             <!-- Fullscreen Button -->
             <button id="btn-fullscreen"
-                class="absolute top-5 right-5 bg-white/80 hover:bg-white backdrop-blur-md p-2.5 rounded-xl shadow-sm hover:shadow z-20 text-slate-700 transition-all border border-slate-200/60 active:scale-95 group focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">
+                class="absolute top-5 right-5 bg-white/80 dark:bg-slate-800/80 hover:bg-white dark:hover:bg-slate-700 backdrop-blur-md p-2.5 rounded-xl shadow-sm hover:shadow z-20 text-slate-700 dark:text-slate-300 transition-all border border-slate-200/60 dark:border-slate-700/60 active:scale-95 group focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900">
                 <svg id="icon-maximize" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
                     fill="none" stroke="currentColor" stroke-width="2"
                     class="group-hover:text-brand-600 transition-colors">
@@ -206,8 +245,9 @@
 
             <!-- Export Loading Overlay -->
             <div id="export-overlay"
-                class="absolute inset-0 bg-slate-900/40 backdrop-blur-md z-30 flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 rounded-lg">
-                <div class="bg-white px-6 py-5 rounded-2xl shadow-xl flex flex-col items-center">
+                class="absolute inset-0 bg-slate-900/40 dark:bg-black/60 backdrop-blur-md z-30 flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 rounded-lg">
+                <div
+                    class="bg-white dark:bg-slate-800 px-6 py-5 rounded-2xl shadow-xl flex flex-col items-center transition-colors duration-300">
                     <svg class="animate-spin h-8 w-8 text-brand-600 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none"
                         viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
@@ -216,8 +256,8 @@
                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
                         </path>
                     </svg>
-                    <p class="text-slate-800 font-semibold text-sm">Preparing 3D model...</p>
-                    <p class="text-slate-400 text-xs mt-1">This may take a moment.</p>
+                    <p class="text-slate-800 dark:text-slate-100 font-semibold text-sm">Preparing 3D model...</p>
+                    <p class="text-slate-400 dark:text-slate-500 text-xs mt-1">This may take a moment.</p>
                 </div>
             </div>
 
@@ -226,12 +266,13 @@
 
         <!-- SIDEBAR CONTROLS -->
         <div id="sidebar-ui"
-            class="w-full lg:w-[420px] bg-slate-50 flex flex-col z-0 h-[50vh] lg:h-full overflow-hidden order-last lg:order-last">
+            class="w-full lg:w-[420px] bg-slate-50 dark:bg-slate-900 flex flex-col z-0 h-[50vh] lg:h-full overflow-hidden order-last lg:order-last transition-colors duration-300">
 
             <!-- Header -->
             <div
-                class="px-6 py-5 bg-white border-b border-slate-200 shrink-0 flex justify-between items-center shadow-sm z-10">
-                <h1 class="text-xl font-bold flex items-center gap-2.5 text-slate-800 tracking-tight">
+                class="px-6 py-5 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700/50 shrink-0 flex justify-between items-center shadow-sm z-10 transition-colors duration-300">
+                <h1
+                    class="text-xl font-bold flex items-center gap-2.5 text-slate-800 dark:text-slate-100 tracking-tight">
                     <div class="bg-brand-100 p-1.5 rounded-lg text-brand-600">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2.5">
@@ -244,16 +285,32 @@
                     </div>
                     MockupMagic
                 </h1>
+
+                <!-- Dark Mode Toggle -->
+                <button id="theme-toggle"
+                    class="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+                    </svg>
+                    <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path
+                            d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
+                            fill-rule="evenodd" clip-rule="evenodd"></path>
+                    </svg>
+                </button>
             </div>
 
-            <div class="p-5 flex-1 overflow-y-auto space-y-4 pb-24 lg:pb-6 relative">
+            <div class="p-5 flex-1 overflow-y-auto space-y-4 pb-24 lg:pb-6 relative z-0">
 
                 <!-- SECTION 1: DECAL UPLOAD (Moved to top for visibility) -->
-                <div class="control-panel border-2 border-brand-100 bg-brand-50/30">
-                    <h2 class="section-title text-brand-900 font-semibold mb-3">Label Design</h2>
+                <div
+                    class="control-panel border-2 border-brand-100 dark:border-brand-900/50 bg-brand-50/30 dark:bg-brand-900/10">
+                    <h2 class="section-title dark:text-brand-300 text-brand-900 font-semibold mb-3">Label Design</h2>
 
                     <label
-                        class="flex flex-col items-center justify-center w-full h-20 border-2 border-dashed border-brand-300 rounded-xl cursor-pointer bg-white hover:bg-brand-50 hover:border-brand-400 transition-all duration-200 relative overflow-hidden group shadow-sm focus-within:ring-2 focus-within:ring-brand-500 focus-within:ring-offset-2">
+                        class="flex flex-col items-center justify-center w-full h-20 border-2 border-dashed border-brand-300 dark:border-brand-700/50 rounded-xl cursor-pointer bg-white dark:bg-slate-800 hover:bg-brand-50 dark:hover:bg-slate-700 hover:border-brand-400 dark:hover:border-brand-600 transition-all duration-200 relative overflow-hidden group shadow-sm focus-within:ring-2 focus-within:ring-brand-500 focus-within:ring-offset-2 dark:focus-within:ring-offset-slate-900">
                         <div id="upload-overlay"
                             class="absolute inset-0 bg-brand-500 flex items-center justify-center opacity-0 transition-opacity z-10">
                             <span class="text-white font-medium text-sm animate-pulse">Processing...</span>
@@ -266,7 +323,8 @@
                                 <polyline points="17 8 12 3 7 8"></polyline>
                                 <line x1="12" y1="3" x2="12" y2="15"></line>
                             </svg>
-                            <span id="upload-text" class="text-sm text-brand-700 font-medium">Upload PDF / Image</span>
+                            <span id="upload-text" class="text-sm text-brand-700 dark:text-brand-300 font-medium">Upload
+                                PDF / Image</span>
                         </div>
                         <!-- Accept-Types optimized for broad device support -->
                         <input type="file" id="file-upload" class="hidden"
@@ -277,31 +335,37 @@
                     <div id="decal-controls"
                         class="space-y-4 mt-4 opacity-40 pointer-events-none transition-opacity duration-300">
                         <button id="btn-autofit"
-                            class="w-full py-2 bg-white border border-slate-200 hover:border-brand-300 hover:bg-brand-50 text-brand-700 text-xs font-semibold rounded-lg shadow-sm transition-colors active:scale-95 flex items-center justify-center gap-2">
+                            class="w-full py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-brand-300 dark:hover:border-brand-600 hover:bg-brand-50 dark:hover:bg-slate-700 text-brand-700 dark:text-brand-300 text-xs font-semibold rounded-lg shadow-sm transition-colors active:scale-95 flex items-center justify-center gap-2">
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2">
                                 <path
                                     d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3">
                                 </path>
                             </svg>
-                            Fit to Can
+                            Fit to Object
                         </button>
 
-                        <div class="space-y-4 pt-4 border-t border-brand-100">
+                        <div class="space-y-4 pt-4 border-t border-brand-100 dark:border-slate-700/50">
                             <div>
-                                <div class="flex justify-between text-[11px] font-medium text-slate-500 mb-1.5">
-                                    <label>Scale (Wrap)</label></div>
+                                <div
+                                    class="flex justify-between text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1.5">
+                                    <label>Scale (Wrap)</label>
+                                </div>
                                 <input type="range" id="decal-scale" min="0.1" max="1.5" step="0.01" value="0.95">
                             </div>
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
-                                    <div class="flex justify-between text-[11px] font-medium text-slate-500 mb-1.5">
-                                        <label>Rotate</label></div>
+                                    <div
+                                        class="flex justify-between text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1.5">
+                                        <label>Rotate</label>
+                                    </div>
                                     <input type="range" id="decal-x" min="0" max="1" step="0.01" value="0.5">
                                 </div>
                                 <div>
-                                    <div class="flex justify-between text-[11px] font-medium text-slate-500 mb-1.5">
-                                        <label>Vertical</label></div>
+                                    <div
+                                        class="flex justify-between text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1.5">
+                                        <label>Vertical</label>
+                                    </div>
                                     <input type="range" id="decal-y" min="0" max="1" step="0.01" value="0.5">
                                 </div>
                             </div>
@@ -311,47 +375,54 @@
 
                 <!-- SECTION 2: PRODUCT TYPE -->
                 <div class="control-panel">
-                    <h2 class="section-title">Select Product</h2>
-                    <div class="flex gap-2">
-                        <button id="btn-mode-can" class="flex-1 py-2 px-3 rounded-lg border-2 text-sm font-semibold transition-colors bg-brand-50 border-brand-500 text-brand-700 shadow-sm">Spray Can</button>
-                        <button id="btn-mode-cart" class="flex-1 py-2 px-3 rounded-lg border-2 border-transparent text-sm font-semibold transition-colors bg-white text-slate-600 hover:bg-slate-50 hover:border-slate-200 shadow-sm">Silicone Cartridge</button>
+                    <h2 class="section-title dark:text-slate-400">Select Product</h2>
+                    <div class="flex gap-2 relative z-0">
+                        <button id="btn-mode-can"
+                            class="flex-1 py-2 px-3 rounded-lg border-2 text-sm font-semibold transition-colors bg-brand-50 dark:bg-brand-900/30 border-brand-500 dark:border-brand-600 text-brand-700 dark:text-brand-300 shadow-sm relative z-0">Spray
+                            Can</button>
+                        <button id="btn-mode-cart"
+                            class="flex-1 py-2 px-3 rounded-lg border-2 border-transparent text-sm font-semibold transition-colors bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-200 dark:hover:border-slate-600 shadow-sm relative z-0">Silicone
+                            Cartridge</button>
                     </div>
                 </div>
 
                 <!-- SECTION 3: DIMENSIONS -->
                 <div class="control-panel">
-                    <h2 id="title-dimensions" class="section-title">Can Dimensions</h2>
+                    <h2 id="title-dimensions" class="section-title dark:text-slate-400">Can Dimensions</h2>
                     <div class="space-y-4">
                         <div>
-                            <div class="flex justify-between text-xs text-slate-500 mb-1.5">
+                            <div class="flex justify-between text-xs text-slate-500 dark:text-slate-400 mb-1.5">
                                 <label>Diameter</label>
-                                <span id="val-diam" class="font-semibold text-slate-700">65 mm</span>
+                                <span id="val-diam" class="font-semibold text-slate-700 dark:text-slate-300">65
+                                    mm</span>
                             </div>
                             <input type="range" id="dim-diam" min="40" max="90" step="1" value="65">
                         </div>
                         <div>
-                            <div class="flex justify-between text-xs text-slate-500 mb-1.5">
+                            <div class="flex justify-between text-xs text-slate-500 dark:text-slate-400 mb-1.5">
                                 <label>Body Height</label>
-                                <span id="val-height" class="font-semibold text-slate-700">145 mm</span>
+                                <span id="val-height" class="font-semibold text-slate-700 dark:text-slate-300">145
+                                    mm</span>
                             </div>
                             <input type="range" id="dim-height" min="50" max="300" step="1" value="145">
                         </div>
 
-                        <div class="pt-4 mt-2 border-t border-slate-100">
+                        <div class="pt-4 mt-2 border-t border-slate-100 dark:border-slate-700/50">
                             <label class="flex items-center justify-between mb-3 cursor-pointer group">
                                 <span
-                                    class="text-xs text-slate-700 font-semibold group-hover:text-brand-600 transition-colors">Include
+                                    class="text-xs text-slate-700 dark:text-slate-300 font-semibold group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">Include
                                     Cap</span>
                                 <div class="relative">
                                     <input type="checkbox" id="toggle-lid" checked class="sr-only peer">
                                     <div
-                                        class="w-9 h-5 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-brand-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-500">
+                                        class="w-9 h-5 bg-slate-200 dark:bg-slate-600 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-brand-300 dark:peer-focus:ring-brand-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 dark:after:border-slate-600 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-500">
                                     </div>
                                 </div>
                             </label>
-                            <div class="flex justify-between text-xs text-slate-500 mb-1.5">
+                            <div class="flex justify-between text-xs text-slate-500 dark:text-slate-400 mb-1.5">
                                 <label id="label-lid">Cap Height</label>
-                                <span id="val-lidheight" class="font-semibold text-slate-700">45 mm</span>
+                                <span id="val-lidheight" class="font-semibold text-slate-700 dark:text-slate-300">45
+                                    mm</span>
                             </div>
                             <input type="range" id="dim-lidheight" min="10" max="100" step="1" value="45">
                         </div>
@@ -361,32 +432,36 @@
                 <!-- SECTION 4: MATERIALS -->
                 <div class="control-panel">
                     <div class="flex justify-between items-center mb-4">
-                        <h2 class="section-title m-0">Materials & Finish</h2>
+                        <h2 class="section-title m-0 dark:text-slate-400">Materials & Finish</h2>
                         <button id="preset-mone"
-                            class="text-[10px] py-1 px-2.5 border border-slate-200 rounded-md bg-white hover:bg-slate-50 font-medium text-slate-600 transition-colors shadow-sm active:scale-95">Reset
+                            class="text-[10px] py-1 px-2.5 border border-slate-200 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 font-medium text-slate-600 dark:text-slate-300 transition-colors shadow-sm active:scale-95">Reset
                             to Standard</button>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4 mb-5">
                         <div>
-                            <label class="block text-xs font-medium text-slate-500 mb-1.5">Body Color</label>
+                            <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">Body
+                                Color</label>
                             <input type="color" id="color-body" value="#d1d5db" class="w-full">
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-slate-500 mb-1.5">Cap Color</label>
+                            <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">Cap
+                                Color</label>
                             <input type="color" id="color-lid" value="#111111" class="w-full">
                         </div>
                     </div>
 
-                    <div class="space-y-4 pt-4 border-t border-slate-100">
+                    <div class="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-700/50">
                         <div>
-                            <div class="flex justify-between text-xs font-medium text-slate-500 mb-1.5">
+                            <div
+                                class="flex justify-between text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
                                 <label>Body Metalness</label>
                             </div>
                             <input type="range" id="slider-metalness" min="0" max="1" step="0.05" value="1.0">
                         </div>
                         <div>
-                            <div class="flex justify-between text-xs font-medium text-slate-500 mb-1.5">
+                            <div
+                                class="flex justify-between text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
                                 <label>Cap Gloss</label>
                             </div>
                             <input type="range" id="slider-lid-gloss" min="0" max="1" step="0.05" value="0.8">
@@ -400,9 +475,9 @@
 
             <!-- GENERATE BUTTON (Sticky Bottom) -->
             <div
-                class="absolute bottom-0 left-0 lg:relative w-full p-4 lg:p-5 bg-white/80 backdrop-blur-md lg:bg-white border-t border-slate-200 shrink-0 z-20">
+                class="absolute bottom-0 left-0 lg:relative w-full p-4 lg:p-5 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md lg:bg-white dark:lg:bg-slate-800 border-t border-slate-200 dark:border-slate-700/50 shrink-0 z-20 transition-colors duration-300">
                 <button id="btn-export-glb"
-                    class="w-full bg-brand-600 hover:bg-brand-700 text-white font-semibold py-3.5 px-4 rounded-xl shadow-[0_4px_14px_0_rgba(2,132,199,0.39)] hover:shadow-[0_6px_20px_rgba(2,132,199,0.23)] flex justify-center items-center gap-2 transition-all transform hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500">
+                    class="w-full bg-brand-600 hover:bg-brand-700 text-white font-semibold py-3.5 px-4 rounded-xl shadow-[0_4px_14px_0_rgba(2,132,199,0.39)] hover:shadow-[0_6px_20px_rgba(2,132,199,0.23)] dark:shadow-[0_4px_14px_0_rgba(2,132,199,0.2)] dark:hover:shadow-[0_6px_20px_rgba(2,132,199,0.3)] flex justify-center items-center gap-2 transition-all transform hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 dark:focus:ring-offset-slate-900">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -457,6 +532,32 @@
         const rimLight = new THREE.DirectionalLight(0xffffff, 0.5);
         rimLight.position.set(0, 10, -20);
         scene.add(rimLight);
+
+        // Update Theme Function for 3D Viewport
+        function update3DThemeParameters() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const wrapper = document.getElementById('viewport-wrapper');
+
+            if (isDark) {
+                wrapper.classList.remove('from-slate-50', 'to-slate-200');
+                wrapper.classList.add('from-slate-900', 'to-slate-800');
+
+                ambientLight.intensity = 0.4;
+                mainLight.intensity = 1.0;
+                fillLight.intensity = 0.4;
+                rimLight.intensity = 0.8;
+
+            } else {
+                wrapper.classList.remove('from-slate-900', 'to-slate-800');
+                wrapper.classList.add('from-slate-50', 'to-slate-200');
+
+                ambientLight.intensity = 0.6;
+                mainLight.intensity = 1.2;
+                fillLight.intensity = 0.8;
+                rimLight.intensity = 0.5;
+            }
+        }
+        update3DThemeParameters(); // Call initially
 
         // Default Materials
         const bodyMat = new THREE.MeshStandardMaterial({ color: 0xd1d5db, metalness: 1.0, roughness: 0.25 });
@@ -525,31 +626,31 @@
         const cartGroup = new THREE.Group();
         cartGroup.visible = false;
         masterGroup.add(cartGroup);
-        
+
         const meshCartBody = new THREE.Mesh(geoCylinder, bodyMat);
         meshCartBody.castShadow = true; meshCartBody.receiveShadow = true;
-        
+
         const meshCartLabel = new THREE.Mesh(geoCylinderOpen, labelMat);
         meshCartLabel.visible = false;
-        
+
         const meshCartTopLip = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 1, 64), bodyMat);
         meshCartTopLip.castShadow = true; meshCartTopLip.receiveShadow = true;
-        
+
         const meshCartTopFlat = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 1, 64), bodyMat);
         meshCartTopFlat.castShadow = true; meshCartTopFlat.receiveShadow = true;
-        
+
         const meshCartThread = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 1, 32), bodyMat);
         meshCartThread.castShadow = true; meshCartThread.receiveShadow = true;
-        
+
         const meshCartNozzleBase = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.32, 1, 32), lidMat);
         meshCartNozzleBase.castShadow = true; meshCartNozzleBase.receiveShadow = true;
-        
+
         const meshCartNozzleTip = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.2, 1, 32), lidMat);
         meshCartNozzleTip.castShadow = true; meshCartNozzleTip.receiveShadow = true;
-        
+
         const meshCartRim = new THREE.Mesh(new THREE.CylinderGeometry(1.02, 1.02, 0.1, 64), bodyMat);
         meshCartRim.castShadow = true; meshCartRim.receiveShadow = true;
-        
+
         cartGroup.add(meshCartBody, meshCartLabel, meshCartTopLip, meshCartTopFlat, meshCartThread, meshCartNozzleBase, meshCartNozzleTip, meshCartRim);
 
         function updateCanDimensions() {
@@ -593,7 +694,7 @@
                 meshCartTopFlat.scale.set(r, flatH, r);
                 meshCartTopFlat.position.y = h + lipH - (flatH / 2);
 
-                const threadH = 1.0; 
+                const threadH = 1.0;
                 meshCartThread.scale.set(r, threadH, r);
                 meshCartThread.position.y = h + lipH + (threadH / 2);
 
@@ -712,6 +813,47 @@
             setTimeout(handleResize, 50);
         });
 
+        // --- THEME TOGGLE LOGIC ---
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
+        const themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
+
+        // Change the icons inside the button based on previous settings
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            themeToggleLightIcon.classList.remove('hidden');
+        } else {
+            themeToggleDarkIcon.classList.remove('hidden');
+        }
+
+        themeToggleBtn.addEventListener('click', function () {
+            // toggle icons
+            themeToggleDarkIcon.classList.toggle('hidden');
+            themeToggleLightIcon.classList.toggle('hidden');
+
+            // if set via local storage previously
+            if (localStorage.getItem('theme')) {
+                if (localStorage.getItem('theme') === 'light') {
+                    document.documentElement.classList.add('dark');
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                    localStorage.setItem('theme', 'light');
+                }
+
+                // if NOT set via local storage previously
+            } else {
+                if (document.documentElement.classList.contains('dark')) {
+                    document.documentElement.classList.remove('dark');
+                    localStorage.setItem('theme', 'light');
+                } else {
+                    document.documentElement.classList.add('dark');
+                    localStorage.setItem('theme', 'dark');
+                }
+            }
+            update3DThemeParameters();
+        });
+
+
         // --- INPUT EVENT LISTENERS ---
         const dimInputs = ['dim-diam', 'dim-height', 'dim-lidheight'];
         dimInputs.forEach(id => {
@@ -734,42 +876,42 @@
         if (btnCan && btnCart) {
             btnCan.addEventListener('click', () => {
                 currentModelType = 'can';
-                btnCan.className = "flex-1 py-2 px-3 rounded-lg border-2 text-sm font-semibold transition-colors bg-brand-50 border-brand-500 text-brand-700 shadow-sm";
-                btnCart.className = "flex-1 py-2 px-3 rounded-lg border-2 border-transparent text-sm font-semibold transition-colors bg-white text-slate-600 hover:bg-slate-50 hover:border-slate-200 shadow-sm";
-                
+                btnCan.className = "flex-1 py-2 px-3 rounded-lg border-2 text-sm font-semibold transition-colors bg-brand-50 dark:bg-brand-900/30 border-brand-500 dark:border-brand-600 text-brand-700 dark:text-brand-300 shadow-sm relative z-0";
+                btnCart.className = "flex-1 py-2 px-3 rounded-lg border-2 border-transparent text-sm font-semibold transition-colors bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-200 dark:hover:border-slate-600 shadow-sm relative z-0";
+
                 document.getElementById('title-dimensions').innerText = 'Can Dimensions';
                 document.getElementById('label-lid').innerText = 'Cap Height';
-                
+
                 document.getElementById('dim-diam').value = 65; document.getElementById('val-diam').innerText = '65 mm';
                 document.getElementById('dim-height').value = 145; document.getElementById('val-height').innerText = '145 mm';
                 document.getElementById('dim-lidheight').value = 45; document.getElementById('val-lidheight').innerText = '45 mm';
-                
+
                 document.getElementById('color-body').value = "#d1d5db"; bodyMat.color.set("#d1d5db");
                 document.getElementById('color-lid').value = "#111111"; lidMat.color.set("#111111");
                 document.getElementById('slider-metalness').value = 1.0; bodyMat.metalness = 1.0;
                 document.getElementById('slider-lid-gloss').value = 0.8; lidMat.roughness = 0.2;
-                
+
                 document.getElementById('toggle-lid').checked = true; meshLid.visible = true;
                 updateCanDimensions();
             });
 
             btnCart.addEventListener('click', () => {
                 currentModelType = 'cartridge';
-                btnCart.className = "flex-1 py-2 px-3 rounded-lg border-2 text-sm font-semibold transition-colors bg-brand-50 border-brand-500 text-brand-700 shadow-sm";
-                btnCan.className = "flex-1 py-2 px-3 rounded-lg border-2 border-transparent text-sm font-semibold transition-colors bg-white text-slate-600 hover:bg-slate-50 hover:border-slate-200 shadow-sm";
-                
+                btnCart.className = "flex-1 py-2 px-3 rounded-lg border-2 text-sm font-semibold transition-colors bg-brand-50 dark:bg-brand-900/30 border-brand-500 dark:border-brand-600 text-brand-700 dark:text-brand-300 shadow-sm relative z-0";
+                btnCan.className = "flex-1 py-2 px-3 rounded-lg border-2 border-transparent text-sm font-semibold transition-colors bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-200 dark:hover:border-slate-600 shadow-sm relative z-0";
+
                 document.getElementById('title-dimensions').innerText = 'Cartridge Dimensions';
                 document.getElementById('label-lid').innerText = 'Nozzle Height';
-                
+
                 document.getElementById('dim-diam').value = 48; document.getElementById('val-diam').innerText = '48 mm';
                 document.getElementById('dim-height').value = 215; document.getElementById('val-height').innerText = '215 mm';
                 document.getElementById('dim-lidheight').value = 105; document.getElementById('val-lidheight').innerText = '105 mm';
-                
+
                 document.getElementById('color-body').value = "#ffffff"; bodyMat.color.set("#ffffff");
                 document.getElementById('color-lid').value = "#f8fafc"; lidMat.color.set("#f8fafc");
                 document.getElementById('slider-metalness').value = 0.0; bodyMat.metalness = 0.0;
                 document.getElementById('slider-lid-gloss').value = 0.4; lidMat.roughness = 0.6;
-                
+
                 document.getElementById('toggle-lid').checked = true; meshCartNozzleBase.visible = true; meshCartNozzleTip.visible = true;
                 updateCanDimensions();
             });
@@ -807,7 +949,7 @@
                 document.getElementById('slider-metalness').value = 0.0; bodyMat.metalness = 0.0;
                 document.getElementById('slider-lid-gloss').value = 0.4; lidMat.roughness = 0.6;
             }
-            document.getElementById('toggle-lid').checked = true; 
+            document.getElementById('toggle-lid').checked = true;
             meshLid.visible = true;
             meshCartNozzleBase.visible = true;
             meshCartNozzleTip.visible = true;
