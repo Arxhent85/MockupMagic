@@ -43,6 +43,7 @@
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
     </script>
     <!-- Dark Mode Initializer -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
         if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark')
@@ -261,6 +262,37 @@
                 </div>
             </div>
 
+            <!-- Download Ready Modal -->
+            <div id="download-ready-modal"
+                class="absolute inset-0 bg-slate-900/40 dark:bg-black/60 backdrop-blur-md z-40 flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 px-4">
+                <div
+                    class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-2xl text-center max-w-sm w-full transition-colors duration-300">
+                    <div
+                        class="w-14 h-14 bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-full flex items-center justify-center mx-auto mb-4 border border-brand-100 dark:border-brand-800 shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-2">Download Started!</h3>
+                    <div
+                        class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 text-amber-800 dark:text-amber-200/90 text-xs p-3 rounded-lg mb-5 text-left leading-relaxed shadow-sm">
+                        The download should start automatically.<br><br>
+                        <strong>If nothing happens (or on mobile):</strong><br>
+                        Click the button below or press and hold it and select "Download File".
+                    </div>
+
+                    <a id="final-download-link" href="#" download="Model.glb"
+                        class="block w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3 px-4 rounded-xl shadow-md mb-3 transition-transform active:scale-95 outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900">
+                        Download File
+                    </a>
+                    <button id="btn-close-modal"
+                        class="text-xs text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 font-bold mt-2 transition-colors outline-none focus:ring-2 focus:ring-slate-400 rounded px-2 py-1">Cancel</button>
+                </div>
+            </div>
+
             <div id="canvas-container"></div>
         </div>
 
@@ -473,19 +505,75 @@
                 <div class="h-4 lg:hidden"></div>
             </div>
 
-            <!-- GENERATE BUTTON (Sticky Bottom) -->
+            <!-- GENERATE BUTTONS (Sticky Bottom) -->
             <div
-                class="absolute bottom-0 left-0 lg:relative w-full p-4 lg:p-5 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md lg:bg-white dark:lg:bg-slate-800 border-t border-slate-200 dark:border-slate-700/50 shrink-0 z-20 transition-colors duration-300">
+                class="absolute bottom-0 left-0 lg:relative w-full p-4 lg:p-5 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md lg:bg-white dark:lg:bg-slate-800 border-t border-slate-200 dark:border-slate-700/50 shrink-0 z-20 space-y-3 transition-colors duration-300">
+
+                <!-- 3D Export -->
                 <button id="btn-export-glb"
-                    class="w-full bg-brand-600 hover:bg-brand-700 text-white font-semibold py-3.5 px-4 rounded-xl shadow-[0_4px_14px_0_rgba(2,132,199,0.39)] hover:shadow-[0_6px_20px_rgba(2,132,199,0.23)] dark:shadow-[0_4px_14px_0_rgba(2,132,199,0.2)] dark:hover:shadow-[0_6px_20px_rgba(2,132,199,0.3)] flex justify-center items-center gap-2 transition-all transform hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 dark:focus:ring-offset-slate-900">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                    class="w-full bg-slate-900 dark:bg-slate-700 hover:bg-slate-800 dark:hover:bg-slate-600 text-white font-semibold py-3 px-4 rounded-xl shadow-sm flex justify-center items-center gap-2 transition-transform active:scale-[0.98] outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900 dark:focus:ring-offset-slate-800 dark:focus:ring-slate-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="7 10 12 15 17 10"></polyline>
-                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+                        <polyline points="16 6 12 2 8 6"></polyline>
+                        <line x1="12" y1="2" x2="12" y2="15"></line>
                     </svg>
-                    Download .GLB Model
+                    Save as 3D Model (.glb)
                 </button>
+
+                <!-- 2D Image Export -->
+                <div
+                    class="border border-slate-200 dark:border-slate-700 rounded-xl p-3 bg-slate-50/50 dark:bg-slate-900/50 space-y-3 transition-colors duration-300">
+                    <div class="flex justify-between items-center">
+                        <span
+                            class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Format:</span>
+                        <select id="img-format-select"
+                            class="text-xs font-medium border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 px-2 py-1.5 outline-none text-slate-700 dark:text-slate-200 shadow-sm cursor-pointer focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-colors">
+                            <option value="png">PNG (Best for Web)</option>
+                            <option value="jpg">JPG (Small File)</option>
+                            <option value="svg">SVG (Vector)</option>
+                            <option value="pdf">PDF (Document)</option>
+                        </select>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span
+                            class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Quality:</span>
+                        <select id="img-quality-select"
+                            class="text-xs font-medium border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 px-2 py-1.5 outline-none text-slate-700 dark:text-slate-200 shadow-sm cursor-pointer focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-colors">
+                            <option value="4k">4K (Ultra HD)</option>
+                            <option value="100">Standard</option>
+                            <option value="50">Compact</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center justify-between pt-2 border-t border-slate-200/60 dark:border-slate-700/60"
+                        id="transparent-wrapper">
+                        <span
+                            class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Background:</span>
+                        <label class="flex items-center gap-2 cursor-pointer group">
+                            <div class="relative flex items-center">
+                                <input type="checkbox" id="img-transparent" checked class="peer sr-only">
+                                <div
+                                    class="w-8 h-4 bg-slate-200 dark:bg-slate-600 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-brand-500/50 rounded-full peer-checked:bg-brand-500 transition-colors">
+                                </div>
+                                <div
+                                    class="absolute left-0.5 top-0.5 w-3 h-3 bg-white rounded-full transition-transform peer-checked:translate-x-4 shadow-sm border border-slate-200 dark:border-slate-600 peer-checked:border-transparent">
+                                </div>
+                            </div>
+                            <span
+                                class="text-[11px] font-bold text-slate-600 dark:text-slate-300 group-hover:text-slate-800 dark:group-hover:text-slate-100 transition-colors">Transparent</span>
+                        </label>
+                    </div>
+                    <button id="btn-export-image"
+                        class="w-full bg-brand-600 hover:bg-brand-700 text-white font-semibold py-2.5 px-4 rounded-lg shadow-[0_4px_14px_0_rgba(2,132,199,0.39)] hover:shadow-[0_6px_20px_rgba(2,132,199,0.23)] dark:shadow-[0_4px_14px_0_rgba(2,132,199,0.2)] dark:hover:shadow-[0_6px_20px_rgba(2,132,199,0.3)] flex justify-center items-center gap-2 transition-transform active:scale-[0.98] outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 dark:focus:ring-offset-slate-900 text-sm mt-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                            <polyline points="21 15 16 10 5 21"></polyline>
+                        </svg>
+                        Save as 2D Image
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -1001,6 +1089,9 @@
         // --- PERFECTED GLB EXPORT SCRIPT ---
         document.getElementById('btn-export-glb').addEventListener('click', async () => {
             const overlay = document.getElementById('export-overlay');
+            const modal = document.getElementById('download-ready-modal');
+            const finalLink = document.getElementById('final-download-link');
+
             overlay.classList.remove('opacity-0', 'pointer-events-none');
 
             // Let UI update
@@ -1013,7 +1104,7 @@
                 // Setting binary: true returns an ArrayBuffer or DataView instead of JSON string
                 const groupToExport = currentModelType === 'can' ? canGroup : cartGroup;
 
-                exporter.parse(groupToExport, function (gltf) {
+                exporter.parse(groupToExport, async function (gltf) {
 
                     let blob;
                     // Defensively determine if the output is binary data or unparsed JSON
@@ -1030,6 +1121,17 @@
                     const baseName = currentModelType === 'can' ? "SprayCan" : "SiliconeCartridge";
                     const filename = (blob.type === 'model/gltf-binary') ? `${baseName}.glb` : `${baseName}.gltf`;
 
+                    const file = new File([blob], filename, { type: blob.type });
+
+                    // Try native share on mobile
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        try {
+                            overlay.classList.add('opacity-0', 'pointer-events-none');
+                            await navigator.share({ files: [file], title: filename });
+                            return;
+                        } catch (err) { }
+                    }
+
                     // Create highly-compatible download link instead of navigator.share
                     // This guarantees file delivery without the 15-byte object corruption bug
                     const objectUrl = URL.createObjectURL(blob);
@@ -1043,8 +1145,14 @@
                     // Cleanup
                     setTimeout(() => {
                         document.body.removeChild(a);
-                        URL.revokeObjectURL(objectUrl);
                         overlay.classList.add('opacity-0', 'pointer-events-none');
+
+                        // Setup Modal Link
+                        finalLink.href = objectUrl;
+                        finalLink.download = filename;
+                        finalLink.innerText = `Download File`;
+
+                        modal.classList.remove('opacity-0', 'pointer-events-none');
                     }, 100);
 
                 }, { binary: true });
@@ -1054,6 +1162,177 @@
                 alert("Error creating 3D file.");
                 overlay.classList.add('opacity-0', 'pointer-events-none');
             }
+        });
+
+        // --- Format & Transparenz Logik ---
+        document.getElementById('img-format-select').addEventListener('change', (e) => {
+            const transCheckbox = document.getElementById('img-transparent');
+            const transWrapper = document.getElementById('transparent-wrapper');
+            // JPG unterstützt keine Transparenz!
+            if (e.target.value === 'jpg') {
+                transCheckbox.disabled = true;
+                transWrapper.style.opacity = '0.5';
+            } else {
+                transCheckbox.disabled = false;
+                transWrapper.style.opacity = '1';
+            }
+        });
+
+        // --- HELPER: Base64 to Blob ---
+        function dataURItoBlob(dataURI) {
+            const byteString = atob(dataURI.split(',')[1]);
+            const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+            const ab = new ArrayBuffer(byteString.length);
+            const ia = new Uint8Array(ab);
+            for (let i = 0; i < byteString.length; i++) {
+                ia[i] = byteString.charCodeAt(i);
+            }
+            return new Blob([ab], { type: mimeString });
+        }
+
+        // --- NEU: BILD EXPORT (PNG, JPG, SVG) ---
+        document.getElementById('btn-export-image').addEventListener('click', () => {
+            const overlay = document.getElementById('export-overlay');
+            const modal = document.getElementById('download-ready-modal');
+            const finalLink = document.getElementById('final-download-link');
+            const qualityMode = document.getElementById('img-quality-select').value;
+            const format = document.getElementById('img-format-select').value;
+            const isTransparent = document.getElementById('img-transparent').checked;
+
+            overlay.classList.remove('opacity-0', 'pointer-events-none');
+
+            setTimeout(() => {
+                const currentW = container.clientWidth;
+                const currentH = container.clientHeight;
+                const aspect = currentW / currentH;
+                const oldPixelRatio = renderer.getPixelRatio();
+                const oldBackground = scene.background;
+
+                let hiResW, hiResH, tempPixelRatio;
+
+                // Auflösung berechnen
+                if (qualityMode === '4k') {
+                    hiResW = 4096;
+                    hiResH = Math.round(hiResW / aspect);
+                    tempPixelRatio = 1;
+                } else if (qualityMode === '100') {
+                    hiResW = currentW;
+                    hiResH = currentH;
+                    tempPixelRatio = oldPixelRatio;
+                } else {
+                    // Kompakt (ca. 75% Kantenlänge)
+                    hiResW = Math.max(1, Math.round(currentW * 0.75));
+                    hiResH = Math.max(1, Math.round(currentH * 0.75));
+                    tempPixelRatio = 1;
+                }
+
+                const isDark = document.documentElement.classList.contains('dark');
+                const SolidColor = isDark ? '#0f172a' : '#f8fafc';
+
+                // Hintergrund anpassen (Bei JPG zwingend einfarbig, sonst wird es schwarz!)
+                if (format === 'jpg') {
+                    scene.background = isTransparent ? new THREE.Color('#ffffff') : new THREE.Color(SolidColor);
+                } else {
+                    scene.background = isTransparent ? null : new THREE.Color(SolidColor);
+                }
+
+                renderer.setPixelRatio(tempPixelRatio);
+                renderer.setSize(hiResW, hiResH, false);
+                renderer.render(scene, camera);
+
+                const width = renderer.domElement.width;
+                const height = renderer.domElement.height;
+
+                let blob, finalUrl;
+                let suffix = qualityMode === '4k' ? '4K' : (qualityMode === '100' ? 'Standard' : 'Compact');
+                let bgSuffix = (isTransparent && format !== 'jpg') ? 'Transparent' : 'Solid';
+                const baseName = currentModelType === 'can' ? "SprayCan" : "SiliconeCartridge";
+                const filename = `${baseName}-${suffix}-${bgSuffix}.${format}`;
+
+                if (format === 'svg') {
+                    const dataUrl = renderer.domElement.toDataURL('image/png', 1.0);
+                    const svgContent = `
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}">
+                            <image href="${dataUrl}" width="${width}" height="${height}" />
+                        </svg>
+                    `;
+                    blob = new Blob([svgContent], { type: 'image/svg+xml;charset=utf-8' });
+                } else if (format === 'pdf') {
+                    // NEU: PDF Export Logik
+                    const { jsPDF } = window.jspdf;
+                    // Orientierung (Quer- oder Hochformat) basierend auf dem Bild
+                    const orientation = width > height ? 'l' : 'p';
+                    // PDF mit der exakten Pixelgröße des Bildes erstellen
+                    const pdf = new jsPDF(orientation, 'pt', [width, height]);
+                    const dataUrl = renderer.domElement.toDataURL(isTransparent ? 'image/png' : 'image/jpeg', 1.0);
+
+                    pdf.addImage(dataUrl, isTransparent ? 'PNG' : 'JPEG', 0, 0, width, height);
+                    blob = pdf.output('blob');
+                } else if (format === 'jpg') {
+                    const dataUrl = renderer.domElement.toDataURL('image/jpeg', 0.95);
+                    blob = dataURItoBlob(dataUrl);
+                } else {
+                    // PNG Format
+                    const dataUrl = renderer.domElement.toDataURL('image/png', 1.0);
+                    blob = dataURItoBlob(dataUrl);
+                }
+
+                // Renderer zurücksetzen
+                scene.background = oldBackground;
+                renderer.setPixelRatio(oldPixelRatio);
+                renderer.setSize(currentW, currentH);
+                renderer.render(scene, camera);
+
+                // Download triggern
+                finalUrl = URL.createObjectURL(blob);
+                const file = new File([blob], filename, { type: blob.type });
+
+                // Try native share on mobile
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    navigator.share({ files: [file], title: filename }).then(() => {
+                        overlay.classList.add('opacity-0', 'pointer-events-none');
+                    }).catch((err) => {
+                        // fallback to temp_link
+                        const tempLink = document.createElement('a');
+                        tempLink.style.display = 'none';
+                        tempLink.href = finalUrl;
+                        tempLink.download = filename;
+                        document.body.appendChild(tempLink);
+                        tempLink.click();
+                        document.body.removeChild(tempLink);
+
+                        finalLink.href = finalUrl;
+                        finalLink.download = filename;
+                        finalLink.innerText = `Download File`;
+
+                        overlay.classList.add('opacity-0', 'pointer-events-none');
+                        modal.classList.remove('opacity-0', 'pointer-events-none');
+                    });
+                } else {
+                    const tempLink = document.createElement('a');
+                    tempLink.style.display = 'none';
+                    tempLink.href = finalUrl;
+                    tempLink.download = filename;
+                    document.body.appendChild(tempLink);
+                    tempLink.click();
+                    document.body.removeChild(tempLink);
+
+                    finalLink.href = finalUrl;
+                    finalLink.download = filename;
+                    finalLink.innerText = `Download File`;
+
+                    overlay.classList.add('opacity-0', 'pointer-events-none');
+                    modal.classList.remove('opacity-0', 'pointer-events-none');
+                }
+
+            }, 100);
+        });
+
+        document.getElementById('final-download-link').addEventListener('click', () => {
+            setTimeout(() => { document.getElementById('download-ready-modal').classList.add('opacity-0', 'pointer-events-none'); }, 1500);
+        });
+        document.getElementById('btn-close-modal').addEventListener('click', () => {
+            document.getElementById('download-ready-modal').classList.add('opacity-0', 'pointer-events-none');
         });
 
         // --- INITIALIZE & RENDER LOOP ---
