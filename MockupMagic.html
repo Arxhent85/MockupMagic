@@ -186,7 +186,7 @@
 
         .control-panel {
             background: white;
-            padding: 1.25rem;
+            padding: 1.5rem;
             border-radius: 0.75rem;
             box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.03);
             border: 1px solid #f1f5f9;
@@ -339,10 +339,10 @@
                 <!-- SECTION 1: DECAL UPLOAD (Moved to top for visibility) -->
                 <div
                     class="control-panel border-2 border-brand-100 dark:border-brand-900/50 bg-brand-50/30 dark:bg-brand-900/10">
-                    <h2 class="section-title dark:text-brand-300 text-brand-900 font-semibold mb-3">Label Design</h2>
+                    <h2 class="section-title dark:text-brand-300 text-brand-900 font-semibold mb-3">1. Add Your Design</h2>
 
                     <label
-                        class="flex flex-col items-center justify-center w-full h-20 border-2 border-dashed border-brand-300 dark:border-brand-700/50 rounded-xl cursor-pointer bg-white dark:bg-slate-800 hover:bg-brand-50 dark:hover:bg-slate-700 hover:border-brand-400 dark:hover:border-brand-600 transition-all duration-200 relative overflow-hidden group shadow-sm focus-within:ring-2 focus-within:ring-brand-500 focus-within:ring-offset-2 dark:focus-within:ring-offset-slate-900">
+                        class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-brand-200 dark:border-brand-700/50 rounded-xl cursor-pointer bg-white dark:bg-slate-800 hover:bg-brand-50 dark:hover:bg-slate-700 hover:border-brand-400 dark:hover:border-brand-500 transition-all duration-200 relative overflow-hidden group shadow-sm focus-within:ring-2 focus-within:ring-brand-500 focus-within:ring-offset-2 dark:focus-within:ring-offset-slate-900">
                         <div id="upload-overlay"
                             class="absolute inset-0 bg-brand-500 flex items-center justify-center opacity-0 transition-opacity z-10">
                             <span class="text-white font-medium text-sm animate-pulse">Processing...</span>
@@ -407,7 +407,7 @@
 
                 <!-- SECTION 2: PRODUCT TYPE -->
                 <div class="control-panel">
-                    <h2 class="section-title dark:text-slate-400">Select Product</h2>
+                    <h2 class="section-title dark:text-slate-400">2. Choose Mockup Type</h2>
                     <div class="flex gap-2 relative z-0">
                         <button id="btn-mode-can"
                             class="flex-1 py-2 px-3 rounded-lg border-2 text-sm font-semibold transition-colors bg-brand-50 dark:bg-brand-900/30 border-brand-500 dark:border-brand-600 text-brand-700 dark:text-brand-300 shadow-sm relative z-0">Spray
@@ -420,7 +420,7 @@
 
                 <!-- SECTION 3: DIMENSIONS -->
                 <div class="control-panel">
-                    <h2 id="title-dimensions" class="section-title dark:text-slate-400">Can Dimensions</h2>
+                    <h2 id="title-dimensions" class="section-title dark:text-slate-400">3. Adjust Size</h2>
                     <div class="space-y-4">
                         <div>
                             <div class="flex justify-between text-xs text-slate-500 dark:text-slate-400 mb-1.5">
@@ -464,7 +464,7 @@
                 <!-- SECTION 4: MATERIALS -->
                 <div class="control-panel">
                     <div class="flex justify-between items-center mb-4">
-                        <h2 class="section-title m-0 dark:text-slate-400">Materials & Finish</h2>
+                        <h2 class="section-title m-0 dark:text-slate-400">4. Customize Appearance</h2>
                         <button id="preset-mone"
                             class="text-[10px] py-1 px-2.5 border border-slate-200 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 font-medium text-slate-600 dark:text-slate-300 transition-colors shadow-sm active:scale-95">Reset
                             to Standard</button>
@@ -523,27 +523,29 @@
 
                 <!-- 2D Image Export -->
                 <div
-                    class="border border-slate-200 dark:border-slate-700 rounded-xl p-3 bg-slate-50/50 dark:bg-slate-900/50 space-y-3 transition-colors duration-300">
-                    <div class="flex justify-between items-center">
-                        <span
-                            class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Format:</span>
-                        <select id="img-format-select"
-                            class="text-xs font-medium border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 px-2 py-1.5 outline-none text-slate-700 dark:text-slate-200 shadow-sm cursor-pointer focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-colors">
-                            <option value="png">PNG (Best for Web)</option>
-                            <option value="jpg">JPG (Small File)</option>
-                            <option value="svg">SVG (Vector)</option>
-                            <option value="pdf">PDF (Document)</option>
-                        </select>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span
-                            class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Quality:</span>
-                        <select id="img-quality-select"
-                            class="text-xs font-medium border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 px-2 py-1.5 outline-none text-slate-700 dark:text-slate-200 shadow-sm cursor-pointer focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-colors">
-                            <option value="4k">4K (Ultra HD)</option>
-                            <option value="100">Standard</option>
-                            <option value="50">Compact</option>
-                        </select>
+                    class="border border-slate-200 dark:border-slate-700 rounded-xl p-3 bg-slate-50/50 dark:bg-slate-900/50 flex flex-col gap-3 transition-colors duration-300">
+                    <div class="grid grid-cols-2 gap-3 items-end">
+                        <div class="flex flex-col gap-1.5">
+                            <span
+                                class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Format</span>
+                            <select id="img-format-select"
+                                class="w-full text-xs font-medium border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 px-2 py-1.5 outline-none text-slate-700 dark:text-slate-200 shadow-sm cursor-pointer focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-colors">
+                                <option value="png">PNG (Web)</option>
+                                <option value="jpg">JPG (Small)</option>
+                                <option value="svg">SVG (Vector)</option>
+                                <option value="pdf">PDF (Print)</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col gap-1.5">
+                            <span
+                                class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Quality</span>
+                            <select id="img-quality-select"
+                                class="w-full text-xs font-medium border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 px-2 py-1.5 outline-none text-slate-700 dark:text-slate-200 shadow-sm cursor-pointer focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-colors">
+                                <option value="4k">4K (Ultra HD)</option>
+                                <option value="100">Standard</option>
+                                <option value="50">Compact</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="flex items-center justify-between pt-2 border-t border-slate-200/60 dark:border-slate-700/60"
                         id="transparent-wrapper">
@@ -967,7 +969,7 @@
                 btnCan.className = "flex-1 py-2 px-3 rounded-lg border-2 text-sm font-semibold transition-colors bg-brand-50 dark:bg-brand-900/30 border-brand-500 dark:border-brand-600 text-brand-700 dark:text-brand-300 shadow-sm relative z-0";
                 btnCart.className = "flex-1 py-2 px-3 rounded-lg border-2 border-transparent text-sm font-semibold transition-colors bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-200 dark:hover:border-slate-600 shadow-sm relative z-0";
 
-                document.getElementById('title-dimensions').innerText = 'Can Dimensions';
+                document.getElementById('title-dimensions').innerText = '3. Adjust Size';
                 document.getElementById('label-lid').innerText = 'Cap Height';
 
                 document.getElementById('dim-diam').value = 65; document.getElementById('val-diam').innerText = '65 mm';
@@ -988,7 +990,7 @@
                 btnCart.className = "flex-1 py-2 px-3 rounded-lg border-2 text-sm font-semibold transition-colors bg-brand-50 dark:bg-brand-900/30 border-brand-500 dark:border-brand-600 text-brand-700 dark:text-brand-300 shadow-sm relative z-0";
                 btnCan.className = "flex-1 py-2 px-3 rounded-lg border-2 border-transparent text-sm font-semibold transition-colors bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-200 dark:hover:border-slate-600 shadow-sm relative z-0";
 
-                document.getElementById('title-dimensions').innerText = 'Cartridge Dimensions';
+                document.getElementById('title-dimensions').innerText = '3. Adjust Size';
                 document.getElementById('label-lid').innerText = 'Nozzle Height';
 
                 document.getElementById('dim-diam').value = 48; document.getElementById('val-diam').innerText = '48 mm';
