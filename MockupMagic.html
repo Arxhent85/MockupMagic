@@ -216,7 +216,7 @@
 
         <!-- 3D VIEWPORT -->
         <div id="viewport-wrapper"
-            class="w-full h-[50vh] lg:h-full lg:flex-1 relative border-b lg:border-b-0 lg:border-r border-slate-200 dark:border-slate-800 bg-gradient-to-br z-10 transition-all duration-300 shadow-inner-soft">
+            class="w-full h-[40dvh] shrink-0 lg:h-full lg:flex-1 relative border-b lg:border-b-0 lg:border-r border-slate-200 dark:border-slate-800 bg-gradient-to-br z-10 transition-all duration-300 shadow-inner-soft">
 
             <!-- Subtle Help Tip -->
             <div
@@ -298,7 +298,7 @@
 
         <!-- SIDEBAR CONTROLS -->
         <div id="sidebar-ui"
-            class="w-full lg:w-[420px] bg-slate-50 dark:bg-slate-900 flex flex-col z-0 h-[50vh] lg:h-full overflow-hidden order-last lg:order-last transition-colors duration-300">
+            class="w-full lg:w-[420px] bg-slate-50 dark:bg-slate-900 flex flex-col z-0 flex-1 lg:h-full overflow-hidden order-last lg:order-last transition-colors duration-300">
 
             <!-- Header -->
             <div
@@ -334,247 +334,251 @@
                 </button>
             </div>
 
-            <div class="p-5 flex-1 overflow-y-auto space-y-4 pb-24 lg:pb-6 relative z-0">
+            <!-- Scrollable Settings -->
+            <div class="flex-1 overflow-y-auto flex flex-col relative z-0">
+                <div class="p-5 space-y-5 lg:space-y-4 flex-none lg:pb-8">
 
-                <!-- SECTION 1: DECAL UPLOAD (Moved to top for visibility) -->
-                <div
-                    class="control-panel border-2 border-brand-100 dark:border-brand-900/50 bg-brand-50/30 dark:bg-brand-900/10">
-                    <h2 class="section-title dark:text-brand-300 text-brand-900 font-semibold mb-3">1. Add Your Design</h2>
+                    <!-- SECTION 1: DECAL UPLOAD (Moved to top for visibility) -->
+                    <div
+                        class="control-panel border-2 border-brand-100 dark:border-brand-900/50 bg-brand-50/30 dark:bg-brand-900/10">
+                        <h2 class="section-title dark:text-brand-300 text-brand-900 font-semibold mb-3">1. Upload PDF
+                            &amp; Design</h2>
 
-                    <label
-                        class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-brand-200 dark:border-brand-700/50 rounded-xl cursor-pointer bg-white dark:bg-slate-800 hover:bg-brand-50 dark:hover:bg-slate-700 hover:border-brand-400 dark:hover:border-brand-500 transition-all duration-200 relative overflow-hidden group shadow-sm focus-within:ring-2 focus-within:ring-brand-500 focus-within:ring-offset-2 dark:focus-within:ring-offset-slate-900">
-                        <div id="upload-overlay"
-                            class="absolute inset-0 bg-brand-500 flex items-center justify-center opacity-0 transition-opacity z-10">
-                            <span class="text-white font-medium text-sm animate-pulse">Processing...</span>
+                        <label
+                            class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-brand-200 dark:border-brand-700/50 rounded-xl cursor-pointer bg-white dark:bg-slate-800 hover:bg-brand-50 dark:hover:bg-slate-700 hover:border-brand-400 dark:hover:border-brand-500 transition-all duration-200 relative overflow-hidden group shadow-sm focus-within:ring-2 focus-within:ring-brand-500 focus-within:ring-offset-2 dark:focus-within:ring-offset-slate-900">
+                            <div id="upload-overlay"
+                                class="absolute inset-0 bg-brand-500 flex items-center justify-center opacity-0 transition-opacity z-10">
+                                <span class="text-white font-medium text-sm animate-pulse">Processing...</span>
+                            </div>
+                            <div class="flex flex-col items-center justify-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2"
+                                    class="text-brand-500 group-hover:transform group-hover:-translate-y-1 transition-transform">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="17 8 12 3 7 8"></polyline>
+                                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                                </svg>
+                                <span id="upload-text"
+                                    class="text-sm text-brand-700 dark:text-brand-300 font-medium">Upload
+                                    PDF / Image</span>
+                            </div>
+                            <!-- Accept-Types optimized for broad device support -->
+                            <input type="file" id="file-upload" class="hidden"
+                                accept=".pdf, .png, .jpg, .jpeg, application/pdf, image/*">
+                        </label>
+
+                        <!-- Decal Position Controls -->
+                        <div id="decal-controls"
+                            class="space-y-4 mt-4 opacity-40 pointer-events-none transition-opacity duration-300">
+                            <button id="btn-autofit"
+                                class="w-full py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-brand-300 dark:hover:border-brand-600 hover:bg-brand-50 dark:hover:bg-slate-700 text-brand-700 dark:text-brand-300 text-xs font-semibold rounded-lg shadow-sm transition-colors active:scale-95 flex items-center justify-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2">
+                                    <path
+                                        d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3">
+                                    </path>
+                                </svg>
+                                Fit to Object
+                            </button>
+
+                            <div class="space-y-4 pt-4 border-t border-brand-100 dark:border-slate-700/50">
+                                <div>
+                                    <div
+                                        class="flex justify-between text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1.5">
+                                        <label>Scale (Wrap)</label>
+                                    </div>
+                                    <input type="range" id="decal-scale" min="0.1" max="1.5" step="0.01" value="0.95">
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <div
+                                            class="flex justify-between text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1.5">
+                                            <label>Rotate</label>
+                                        </div>
+                                        <input type="range" id="decal-x" min="0" max="1" step="0.01" value="0.5">
+                                    </div>
+                                    <div>
+                                        <div
+                                            class="flex justify-between text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1.5">
+                                            <label>Vertical</label>
+                                        </div>
+                                        <input type="range" id="decal-y" min="0" max="1" step="0.01" value="0.5">
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="flex flex-col items-center justify-center gap-1">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2"
-                                class="text-brand-500 group-hover:transform group-hover:-translate-y-1 transition-transform">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                <polyline points="17 8 12 3 7 8"></polyline>
-                                <line x1="12" y1="3" x2="12" y2="15"></line>
-                            </svg>
-                            <span id="upload-text" class="text-sm text-brand-700 dark:text-brand-300 font-medium">Upload
-                                PDF / Image</span>
+                    </div>
+
+                    <!-- SECTION 2: PRODUCT TYPE -->
+                    <div class="control-panel">
+                        <h2 class="section-title dark:text-slate-400">2. Choose Mockup Type</h2>
+                        <div class="flex gap-2 relative z-0">
+                            <button id="btn-mode-can"
+                                class="flex-1 py-2 px-2 sm:px-3 rounded-lg border-2 text-xs sm:text-sm font-semibold transition-colors bg-brand-50 dark:bg-brand-900/30 border-brand-500 dark:border-brand-600 text-brand-700 dark:text-brand-300 shadow-sm relative z-0">Spray
+                                Can</button>
+                            <button id="btn-mode-cart"
+                                class="flex-1 py-2 px-2 sm:px-3 rounded-lg border-2 border-transparent text-xs sm:text-sm font-semibold transition-colors bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-200 dark:hover:border-slate-600 shadow-sm relative z-0">Silicone
+                                Cartridge</button>
                         </div>
-                        <!-- Accept-Types optimized for broad device support -->
-                        <input type="file" id="file-upload" class="hidden"
-                            accept=".pdf, .png, .jpg, .jpeg, application/pdf, image/*">
-                    </label>
+                    </div>
 
-                    <!-- Decal Position Controls -->
-                    <div id="decal-controls"
-                        class="space-y-4 mt-4 opacity-40 pointer-events-none transition-opacity duration-300">
-                        <button id="btn-autofit"
-                            class="w-full py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-brand-300 dark:hover:border-brand-600 hover:bg-brand-50 dark:hover:bg-slate-700 text-brand-700 dark:text-brand-300 text-xs font-semibold rounded-lg shadow-sm transition-colors active:scale-95 flex items-center justify-center gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2">
-                                <path
-                                    d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3">
-                                </path>
-                            </svg>
-                            Fit to Object
-                        </button>
+                    <!-- SECTION 3: DIMENSIONS -->
+                    <div class="control-panel">
+                        <h2 id="title-dimensions" class="section-title dark:text-slate-400">3. Adjust Size</h2>
+                        <div class="space-y-4">
+                            <div>
+                                <div class="flex justify-between text-xs text-slate-500 dark:text-slate-400 mb-1.5">
+                                    <label>Diameter</label>
+                                    <span id="val-diam" class="font-semibold text-slate-700 dark:text-slate-300">65
+                                        mm</span>
+                                </div>
+                                <input type="range" id="dim-diam" min="40" max="90" step="1" value="65">
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs text-slate-500 dark:text-slate-400 mb-1.5">
+                                    <label>Body Height</label>
+                                    <span id="val-height" class="font-semibold text-slate-700 dark:text-slate-300">145
+                                        mm</span>
+                                </div>
+                                <input type="range" id="dim-height" min="50" max="300" step="1" value="145">
+                            </div>
 
-                        <div class="space-y-4 pt-4 border-t border-brand-100 dark:border-slate-700/50">
+                            <div class="pt-4 mt-2 border-t border-slate-100 dark:border-slate-700/50">
+                                <label class="flex items-center justify-between mb-3 cursor-pointer group">
+                                    <span
+                                        class="text-xs text-slate-700 dark:text-slate-300 font-semibold group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">Include
+                                        Cap</span>
+                                    <div class="relative">
+                                        <input type="checkbox" id="toggle-lid" checked class="sr-only peer">
+                                        <div
+                                            class="w-9 h-5 bg-slate-200 dark:bg-slate-600 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-brand-300 dark:peer-focus:ring-brand-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 dark:after:border-slate-600 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-500">
+                                        </div>
+                                    </div>
+                                </label>
+                                <div class="flex justify-between text-xs text-slate-500 dark:text-slate-400 mb-1.5">
+                                    <label id="label-lid">Cap Height</label>
+                                    <span id="val-lidheight" class="font-semibold text-slate-700 dark:text-slate-300">45
+                                        mm</span>
+                                </div>
+                                <input type="range" id="dim-lidheight" min="10" max="100" step="1" value="45">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECTION 4: MATERIALS -->
+                    <div class="control-panel">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="section-title m-0 dark:text-slate-400">4. Customize Appearance</h2>
+                            <button id="preset-mone"
+                                class="text-[10px] py-1 px-2.5 border border-slate-200 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 font-medium text-slate-600 dark:text-slate-300 transition-colors shadow-sm active:scale-95">Reset
+                                to Standard</button>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 mb-5">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">Body
+                                    Color</label>
+                                <input type="color" id="color-body" value="#d1d5db" class="w-full">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">Cap
+                                    Color</label>
+                                <input type="color" id="color-lid" value="#111111" class="w-full">
+                            </div>
+                        </div>
+
+                        <div class="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-700/50">
                             <div>
                                 <div
-                                    class="flex justify-between text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1.5">
-                                    <label>Scale (Wrap)</label>
+                                    class="flex justify-between text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
+                                    <label>Body Metalness</label>
                                 </div>
-                                <input type="range" id="decal-scale" min="0.1" max="1.5" step="0.01" value="0.95">
+                                <input type="range" id="slider-metalness" min="0" max="1" step="0.05" value="1.0">
                             </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <div
-                                        class="flex justify-between text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1.5">
-                                        <label>Rotate</label>
-                                    </div>
-                                    <input type="range" id="decal-x" min="0" max="1" step="0.01" value="0.5">
+                            <div>
+                                <div
+                                    class="flex justify-between text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
+                                    <label>Cap Gloss</label>
                                 </div>
-                                <div>
-                                    <div
-                                        class="flex justify-between text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1.5">
-                                        <label>Vertical</label>
-                                    </div>
-                                    <input type="range" id="decal-y" min="0" max="1" step="0.01" value="0.5">
-                                </div>
+                                <input type="range" id="slider-lid-gloss" min="0" max="1" step="0.05" value="0.8">
                             </div>
                         </div>
                     </div>
+
                 </div>
 
-                <!-- SECTION 2: PRODUCT TYPE -->
-                <div class="control-panel">
-                    <h2 class="section-title dark:text-slate-400">2. Choose Mockup Type</h2>
-                    <div class="flex gap-2 relative z-0">
-                        <button id="btn-mode-can"
-                            class="flex-1 py-2 px-3 rounded-lg border-2 text-sm font-semibold transition-colors bg-brand-50 dark:bg-brand-900/30 border-brand-500 dark:border-brand-600 text-brand-700 dark:text-brand-300 shadow-sm relative z-0">Spray
-                            Can</button>
-                        <button id="btn-mode-cart"
-                            class="flex-1 py-2 px-3 rounded-lg border-2 border-transparent text-sm font-semibold transition-colors bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-200 dark:hover:border-slate-600 shadow-sm relative z-0">Silicone
-                            Cartridge</button>
-                    </div>
-                </div>
-
-                <!-- SECTION 3: DIMENSIONS -->
-                <div class="control-panel">
-                    <h2 id="title-dimensions" class="section-title dark:text-slate-400">3. Adjust Size</h2>
-                    <div class="space-y-4">
-                        <div>
-                            <div class="flex justify-between text-xs text-slate-500 dark:text-slate-400 mb-1.5">
-                                <label>Diameter</label>
-                                <span id="val-diam" class="font-semibold text-slate-700 dark:text-slate-300">65
-                                    mm</span>
-                            </div>
-                            <input type="range" id="dim-diam" min="40" max="90" step="1" value="65">
-                        </div>
-                        <div>
-                            <div class="flex justify-between text-xs text-slate-500 dark:text-slate-400 mb-1.5">
-                                <label>Body Height</label>
-                                <span id="val-height" class="font-semibold text-slate-700 dark:text-slate-300">145
-                                    mm</span>
-                            </div>
-                            <input type="range" id="dim-height" min="50" max="300" step="1" value="145">
-                        </div>
-
-                        <div class="pt-4 mt-2 border-t border-slate-100 dark:border-slate-700/50">
-                            <label class="flex items-center justify-between mb-3 cursor-pointer group">
-                                <span
-                                    class="text-xs text-slate-700 dark:text-slate-300 font-semibold group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">Include
-                                    Cap</span>
-                                <div class="relative">
-                                    <input type="checkbox" id="toggle-lid" checked class="sr-only peer">
-                                    <div
-                                        class="w-9 h-5 bg-slate-200 dark:bg-slate-600 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-brand-300 dark:peer-focus:ring-brand-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 dark:after:border-slate-600 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-500">
-                                    </div>
-                                </div>
-                            </label>
-                            <div class="flex justify-between text-xs text-slate-500 dark:text-slate-400 mb-1.5">
-                                <label id="label-lid">Cap Height</label>
-                                <span id="val-lidheight" class="font-semibold text-slate-700 dark:text-slate-300">45
-                                    mm</span>
-                            </div>
-                            <input type="range" id="dim-lidheight" min="10" max="100" step="1" value="45">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SECTION 4: MATERIALS -->
-                <div class="control-panel">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="section-title m-0 dark:text-slate-400">4. Customize Appearance</h2>
-                        <button id="preset-mone"
-                            class="text-[10px] py-1 px-2.5 border border-slate-200 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 font-medium text-slate-600 dark:text-slate-300 transition-colors shadow-sm active:scale-95">Reset
-                            to Standard</button>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4 mb-5">
-                        <div>
-                            <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">Body
-                                Color</label>
-                            <input type="color" id="color-body" value="#d1d5db" class="w-full">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">Cap
-                                Color</label>
-                            <input type="color" id="color-lid" value="#111111" class="w-full">
-                        </div>
-                    </div>
-
-                    <div class="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-700/50">
-                        <div>
-                            <div
-                                class="flex justify-between text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
-                                <label>Body Metalness</label>
-                            </div>
-                            <input type="range" id="slider-metalness" min="0" max="1" step="0.05" value="1.0">
-                        </div>
-                        <div>
-                            <div
-                                class="flex justify-between text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
-                                <label>Cap Gloss</label>
-                            </div>
-                            <input type="range" id="slider-lid-gloss" min="0" max="1" step="0.05" value="0.8">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Sticky bottom spacing for mobile -->
-                <div class="h-4 lg:hidden"></div>
-            </div>
-
-            <!-- GENERATE BUTTONS (Sticky Bottom) -->
-            <div
-                class="absolute bottom-0 left-0 lg:relative w-full p-4 lg:p-5 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md lg:bg-white dark:lg:bg-slate-800 border-t border-slate-200 dark:border-slate-700/50 shrink-0 z-20 space-y-3 transition-colors duration-300">
-
-                <!-- 3D Export -->
-                <button id="btn-export-glb"
-                    class="w-full bg-slate-900 dark:bg-slate-700 hover:bg-slate-800 dark:hover:bg-slate-600 text-white font-semibold py-3 px-4 rounded-xl shadow-sm flex justify-center items-center gap-2 transition-transform active:scale-[0.98] outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900 dark:focus:ring-offset-slate-800 dark:focus:ring-slate-400">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
-                        <polyline points="16 6 12 2 8 6"></polyline>
-                        <line x1="12" y1="2" x2="12" y2="15"></line>
-                    </svg>
-                    Save as 3D Model (.glb)
-                </button>
-
-                <!-- 2D Image Export -->
+                <!-- GENERATE BUTTONS (Flows on mobile, sticky on desktop) -->
                 <div
-                    class="border border-slate-200 dark:border-slate-700 rounded-xl p-3 bg-slate-50/50 dark:bg-slate-900/50 flex flex-col gap-3 transition-colors duration-300">
-                    <div class="grid grid-cols-2 gap-3 items-end">
-                        <div class="flex flex-col gap-1.5">
-                            <span
-                                class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Format</span>
-                            <select id="img-format-select"
-                                class="w-full text-xs font-medium border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 px-2 py-1.5 outline-none text-slate-700 dark:text-slate-200 shadow-sm cursor-pointer focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-colors">
-                                <option value="png">PNG (Web)</option>
-                                <option value="jpg">JPG (Small)</option>
-                                <option value="svg">SVG (Vector)</option>
-                                <option value="pdf">PDF (Print)</option>
-                            </select>
-                        </div>
-                        <div class="flex flex-col gap-1.5">
-                            <span
-                                class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Quality</span>
-                            <select id="img-quality-select"
-                                class="w-full text-xs font-medium border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 px-2 py-1.5 outline-none text-slate-700 dark:text-slate-200 shadow-sm cursor-pointer focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-colors">
-                                <option value="4k">4K (Ultra HD)</option>
-                                <option value="100">Standard</option>
-                                <option value="50">Compact</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="flex items-center justify-between pt-2 border-t border-slate-200/60 dark:border-slate-700/60"
-                        id="transparent-wrapper">
-                        <span
-                            class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Background:</span>
-                        <label class="flex items-center gap-2 cursor-pointer group">
-                            <div class="relative flex items-center">
-                                <input type="checkbox" id="img-transparent" checked class="peer sr-only">
-                                <div
-                                    class="w-8 h-4 bg-slate-200 dark:bg-slate-600 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-brand-500/50 rounded-full peer-checked:bg-brand-500 transition-colors">
-                                </div>
-                                <div
-                                    class="absolute left-0.5 top-0.5 w-3 h-3 bg-white rounded-full transition-transform peer-checked:translate-x-4 shadow-sm border border-slate-200 dark:border-slate-600 peer-checked:border-transparent">
-                                </div>
-                            </div>
-                            <span
-                                class="text-[11px] font-bold text-slate-600 dark:text-slate-300 group-hover:text-slate-800 dark:group-hover:text-slate-100 transition-colors">Transparent</span>
-                        </label>
-                    </div>
-                    <button id="btn-export-image"
-                        class="w-full bg-brand-600 hover:bg-brand-700 text-white font-semibold py-2.5 px-4 rounded-lg shadow-[0_4px_14px_0_rgba(2,132,199,0.39)] hover:shadow-[0_6px_20px_rgba(2,132,199,0.23)] dark:shadow-[0_4px_14px_0_rgba(2,132,199,0.2)] dark:hover:shadow-[0_6px_20px_rgba(2,132,199,0.3)] flex justify-center items-center gap-2 transition-transform active:scale-[0.98] outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 dark:focus:ring-offset-slate-900 text-sm mt-1">
+                    class="w-full p-5 bg-slate-50 lg:bg-white/95 dark:bg-slate-900 lg:dark:bg-slate-800/95 lg:backdrop-blur-md border-t border-slate-200 dark:border-slate-700/50 mt-auto shrink-0 z-20 space-y-4 lg:sticky lg:bottom-0 transition-colors duration-300">
+
+                    <!-- 3D Export -->
+                    <button id="btn-export-glb"
+                        class="w-full bg-slate-900 dark:bg-slate-700 hover:bg-slate-800 dark:hover:bg-slate-600 text-white font-semibold py-3 px-4 rounded-xl shadow-sm flex justify-center items-center gap-2 transition-transform active:scale-[0.98] outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900 dark:focus:ring-offset-slate-800 dark:focus:ring-slate-400">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                            <polyline points="21 15 16 10 5 21"></polyline>
+                            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+                            <polyline points="16 6 12 2 8 6"></polyline>
+                            <line x1="12" y1="2" x2="12" y2="15"></line>
                         </svg>
-                        Save as 2D Image
+                        Save as 3D Model (.glb)
                     </button>
+
+                    <!-- 2D Image Export -->
+                    <div
+                        class="border border-slate-200 dark:border-slate-700 rounded-xl p-3 bg-slate-50/50 dark:bg-slate-900/50 flex flex-col gap-3 transition-colors duration-300">
+                        <div class="grid grid-cols-2 gap-3 items-end">
+                            <div class="flex flex-col gap-1.5">
+                                <span
+                                    class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Format</span>
+                                <select id="img-format-select"
+                                    class="w-full text-xs font-medium border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 px-2 py-1.5 outline-none text-slate-700 dark:text-slate-200 shadow-sm cursor-pointer focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-colors">
+                                    <option value="png">PNG (Web)</option>
+                                    <option value="jpg">JPG (Small)</option>
+                                    <option value="svg">SVG (Vector)</option>
+                                    <option value="pdf">PDF (Print)</option>
+                                </select>
+                            </div>
+                            <div class="flex flex-col gap-1.5">
+                                <span
+                                    class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Quality</span>
+                                <select id="img-quality-select"
+                                    class="w-full text-xs font-medium border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 px-2 py-1.5 outline-none text-slate-700 dark:text-slate-200 shadow-sm cursor-pointer focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-colors">
+                                    <option value="4k">4K (Ultra HD)</option>
+                                    <option value="100">Standard</option>
+                                    <option value="50">Compact</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between pt-2 border-t border-slate-200/60 dark:border-slate-700/60"
+                            id="transparent-wrapper">
+                            <span
+                                class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Background:</span>
+                            <label class="flex items-center gap-2 cursor-pointer group">
+                                <div class="relative flex items-center">
+                                    <input type="checkbox" id="img-transparent" checked class="peer sr-only">
+                                    <div
+                                        class="w-8 h-4 bg-slate-200 dark:bg-slate-600 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-brand-500/50 rounded-full peer-checked:bg-brand-500 transition-colors">
+                                    </div>
+                                    <div
+                                        class="absolute left-0.5 top-0.5 w-3 h-3 bg-white rounded-full transition-transform peer-checked:translate-x-4 shadow-sm border border-slate-200 dark:border-slate-600 peer-checked:border-transparent">
+                                    </div>
+                                </div>
+                                <span
+                                    class="text-[11px] font-bold text-slate-600 dark:text-slate-300 group-hover:text-slate-800 dark:group-hover:text-slate-100 transition-colors">Transparent</span>
+                            </label>
+                        </div>
+                        <button id="btn-export-image"
+                            class="w-full bg-brand-600 hover:bg-brand-700 text-white font-semibold py-2.5 px-4 rounded-lg shadow-[0_4px_14px_0_rgba(2,132,199,0.39)] hover:shadow-[0_6px_20px_rgba(2,132,199,0.23)] dark:shadow-[0_4px_14px_0_rgba(2,132,199,0.2)] dark:hover:shadow-[0_6px_20px_rgba(2,132,199,0.3)] flex justify-center items-center gap-2 transition-transform active:scale-[0.98] outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 dark:focus:ring-offset-slate-900 text-sm mt-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                <polyline points="21 15 16 10 5 21"></polyline>
+                            </svg>
+                            Save as 2D Image
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
