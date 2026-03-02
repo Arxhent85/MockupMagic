@@ -826,6 +826,7 @@
         }
 
         let uploadedImage = null;
+        let uploadedFilename = null;
         function updateTexture() {
             if (!uploadedImage) return;
             const wrapPercent = parseFloat(document.getElementById('decal-scale').value);
@@ -1070,6 +1071,7 @@
         document.getElementById('file-upload').addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (!file) return;
+            uploadedFilename = file.name.replace(/\.[^/.]+$/, "");
             document.getElementById('upload-overlay').classList.add('opacity-100');
             try {
                 if (file.type === 'application/pdf') {
@@ -1140,7 +1142,8 @@
                     }
 
                     // Make sure extension matches the Blob type
-                    const baseName = currentModelType === 'can' ? "SprayCan" : "SiliconeCartridge";
+                    const defaultBaseName = currentModelType === 'can' ? "SprayCan" : "SiliconeCartridge";
+                    const baseName = uploadedFilename || defaultBaseName;
                     const filename = (blob.type === 'model/gltf-binary') ? `${baseName}.glb` : `${baseName}.gltf`;
 
                     const file = new File([blob], filename, { type: blob.type });
@@ -1201,7 +1204,8 @@
                 const result = exporter.parse(groupToExport);
 
                 const blob = new Blob([result], { type: 'text/plain' });
-                const baseName = currentModelType === 'can' ? "SprayCan" : "SiliconeCartridge";
+                const defaultBaseName = currentModelType === 'can' ? "SprayCan" : "SiliconeCartridge";
+                const baseName = uploadedFilename || defaultBaseName;
                 const filename = `${baseName}.obj`;
                 const file = new File([blob], filename, { type: blob.type });
 
@@ -1321,7 +1325,8 @@
                 let blob, finalUrl;
                 let suffix = qualityMode === '4k' ? '4K' : (qualityMode === '100' ? 'Standard' : 'Compact');
                 let bgSuffix = (isTransparent && format !== 'jpg') ? 'Transparent' : 'Solid';
-                const baseName = currentModelType === 'can' ? "SprayCan" : "SiliconeCartridge";
+                const defaultBaseName = currentModelType === 'can' ? "SprayCan" : "SiliconeCartridge";
+                const baseName = uploadedFilename || defaultBaseName;
                 const filename = `${baseName}-${suffix}-${bgSuffix}.${format}`;
 
                 if (format === 'svg') {
