@@ -277,9 +277,10 @@
                             <line x1="12" y1="15" x2="12" y2="3"></line>
                         </svg>
                     </div>
-                    <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-2">Download Started!</h3>
+                    <h3 id="modal-title" class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-2 truncate"
+                        title="Download Started!">Download Started!</h3>
                     <div
-                        class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 text-amber-800 dark:text-amber-200/90 text-xs p-3 rounded-lg mb-5 text-left leading-relaxed shadow-sm">
+                        class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 text-amber-800 dark:text-amber-200/90 text-[11px] p-3 rounded-lg mb-5 text-left leading-relaxed shadow-sm">
                         The download should start automatically.<br><br>
                         <strong>If nothing happens (or on mobile):</strong><br>
                         Click the button below or press and hold it and select "Download File".
@@ -826,6 +827,7 @@
         }
 
         let uploadedImage = null;
+        let uploadedFilename = null;
         function updateTexture() {
             if (!uploadedImage) return;
             const wrapPercent = parseFloat(document.getElementById('decal-scale').value);
@@ -1070,6 +1072,7 @@
         document.getElementById('file-upload').addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (!file) return;
+            uploadedFilename = file.name.replace(/\.[^/.]+$/, "");
             document.getElementById('upload-overlay').classList.add('opacity-100');
             try {
                 if (file.type === 'application/pdf') {
@@ -1140,8 +1143,9 @@
                     }
 
                     // Make sure extension matches the Blob type
-                    const baseName = currentModelType === 'can' ? "SprayCan" : "SiliconeCartridge";
-                    const filename = (blob.type === 'model/gltf-binary') ? `${baseName}.glb` : `${baseName}.gltf`;
+                    const defaultBaseName = currentModelType === 'can' ? "SprayCan" : "SiliconeCartridge";
+                    const baseName = uploadedFilename || defaultBaseName;
+                    const filename = (blob.type === 'model/gltf-binary') ? `${baseName}-3D.glb` : `${baseName}-3D.gltf`;
 
                     const file = new File([blob], filename, { type: blob.type });
 
@@ -1173,6 +1177,8 @@
                         finalLink.href = objectUrl;
                         finalLink.download = filename;
                         finalLink.innerText = `Download File`;
+                        document.getElementById('modal-title').innerText = `Preparing: ${filename}`;
+                        document.getElementById('modal-title').title = filename;
 
                         modal.classList.remove('opacity-0', 'pointer-events-none');
                     }, 100);
@@ -1201,8 +1207,9 @@
                 const result = exporter.parse(groupToExport);
 
                 const blob = new Blob([result], { type: 'text/plain' });
-                const baseName = currentModelType === 'can' ? "SprayCan" : "SiliconeCartridge";
-                const filename = `${baseName}.obj`;
+                const defaultBaseName = currentModelType === 'can' ? "SprayCan" : "SiliconeCartridge";
+                const baseName = uploadedFilename || defaultBaseName;
+                const filename = `${baseName}-3D.obj`;
                 const file = new File([blob], filename, { type: blob.type });
 
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -1228,6 +1235,8 @@
                     finalLink.href = objectUrl;
                     finalLink.download = filename;
                     finalLink.innerText = `Download File`;
+                    document.getElementById('modal-title').innerText = `Preparing: ${filename}`;
+                    document.getElementById('modal-title').title = filename;
                     modal.classList.remove('opacity-0', 'pointer-events-none');
                 }, 100);
 
@@ -1321,8 +1330,9 @@
                 let blob, finalUrl;
                 let suffix = qualityMode === '4k' ? '4K' : (qualityMode === '100' ? 'Standard' : 'Compact');
                 let bgSuffix = (isTransparent && format !== 'jpg') ? 'Transparent' : 'Solid';
-                const baseName = currentModelType === 'can' ? "SprayCan" : "SiliconeCartridge";
-                const filename = `${baseName}-${suffix}-${bgSuffix}.${format}`;
+                const defaultBaseName = currentModelType === 'can' ? "SprayCan" : "SiliconeCartridge";
+                const baseName = uploadedFilename || defaultBaseName;
+                const filename = `${baseName}-3D-${suffix}-${bgSuffix}.${format}`;
 
                 if (format === 'svg') {
                     const dataUrl = renderer.domElement.toDataURL('image/png', 1.0);
@@ -1379,6 +1389,8 @@
                         finalLink.href = finalUrl;
                         finalLink.download = filename;
                         finalLink.innerText = `Download File`;
+                        document.getElementById('modal-title').innerText = `Preparing: ${filename}`;
+                        document.getElementById('modal-title').title = filename;
 
                         overlay.classList.add('opacity-0', 'pointer-events-none');
                         modal.classList.remove('opacity-0', 'pointer-events-none');
@@ -1395,6 +1407,8 @@
                     finalLink.href = finalUrl;
                     finalLink.download = filename;
                     finalLink.innerText = `Download File`;
+                    document.getElementById('modal-title').innerText = `Preparing: ${filename}`;
+                    document.getElementById('modal-title').title = filename;
 
                     overlay.classList.add('opacity-0', 'pointer-events-none');
                     modal.classList.remove('opacity-0', 'pointer-events-none');
