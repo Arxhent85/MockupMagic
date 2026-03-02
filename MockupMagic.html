@@ -277,9 +277,10 @@
                             <line x1="12" y1="15" x2="12" y2="3"></line>
                         </svg>
                     </div>
-                    <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-2">Download Started!</h3>
+                    <h3 id="modal-title" class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-2 truncate"
+                        title="Download Started!">Download Started!</h3>
                     <div
-                        class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 text-amber-800 dark:text-amber-200/90 text-xs p-3 rounded-lg mb-5 text-left leading-relaxed shadow-sm">
+                        class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 text-amber-800 dark:text-amber-200/90 text-[11px] p-3 rounded-lg mb-5 text-left leading-relaxed shadow-sm">
                         The download should start automatically.<br><br>
                         <strong>If nothing happens (or on mobile):</strong><br>
                         Click the button below or press and hold it and select "Download File".
@@ -1176,6 +1177,8 @@
                         finalLink.href = objectUrl;
                         finalLink.download = filename;
                         finalLink.innerText = `Download File`;
+                        document.getElementById('modal-title').innerText = `Preparing: ${filename}`;
+                        document.getElementById('modal-title').title = filename;
 
                         modal.classList.remove('opacity-0', 'pointer-events-none');
                     }, 100);
@@ -1232,6 +1235,8 @@
                     finalLink.href = objectUrl;
                     finalLink.download = filename;
                     finalLink.innerText = `Download File`;
+                    document.getElementById('modal-title').innerText = `Preparing: ${filename}`;
+                    document.getElementById('modal-title').title = filename;
                     modal.classList.remove('opacity-0', 'pointer-events-none');
                 }, 100);
 
@@ -1384,6 +1389,8 @@
                         finalLink.href = finalUrl;
                         finalLink.download = filename;
                         finalLink.innerText = `Download File`;
+                        document.getElementById('modal-title').innerText = `Preparing: ${filename}`;
+                        document.getElementById('modal-title').title = filename;
 
                         overlay.classList.add('opacity-0', 'pointer-events-none');
                         modal.classList.remove('opacity-0', 'pointer-events-none');
@@ -1400,6 +1407,8 @@
                     finalLink.href = finalUrl;
                     finalLink.download = filename;
                     finalLink.innerText = `Download File`;
+                    document.getElementById('modal-title').innerText = `Preparing: ${filename}`;
+                    document.getElementById('modal-title').title = filename;
 
                     overlay.classList.add('opacity-0', 'pointer-events-none');
                     modal.classList.remove('opacity-0', 'pointer-events-none');
