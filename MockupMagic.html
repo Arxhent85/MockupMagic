@@ -1145,7 +1145,7 @@
                     // Make sure extension matches the Blob type
                     const defaultBaseName = currentModelType === 'can' ? "SprayCan" : "SiliconeCartridge";
                     const baseName = uploadedFilename || defaultBaseName;
-                    const filename = (blob.type === 'model/gltf-binary') ? `${baseName}.glb` : `${baseName}.gltf`;
+                    const filename = (blob.type === 'model/gltf-binary') ? `${baseName}-3D.glb` : `${baseName}-3D.gltf`;
 
                     const file = new File([blob], filename, { type: blob.type });
 
@@ -1209,7 +1209,7 @@
                 const blob = new Blob([result], { type: 'text/plain' });
                 const defaultBaseName = currentModelType === 'can' ? "SprayCan" : "SiliconeCartridge";
                 const baseName = uploadedFilename || defaultBaseName;
-                const filename = `${baseName}.obj`;
+                const filename = `${baseName}-3D.obj`;
                 const file = new File([blob], filename, { type: blob.type });
 
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -1332,7 +1332,7 @@
                 let bgSuffix = (isTransparent && format !== 'jpg') ? 'Transparent' : 'Solid';
                 const defaultBaseName = currentModelType === 'can' ? "SprayCan" : "SiliconeCartridge";
                 const baseName = uploadedFilename || defaultBaseName;
-                const filename = `${baseName}-${suffix}-${bgSuffix}.${format}`;
+                const filename = `${baseName}-3D-${suffix}-${bgSuffix}.${format}`;
 
                 if (format === 'svg') {
                     const dataUrl = renderer.domElement.toDataURL('image/png', 1.0);
