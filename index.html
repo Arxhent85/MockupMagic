@@ -123,6 +123,7 @@
         /* Modernized Range Slider */
         input[type="range"] {
             -webkit-appearance: none;
+            appearance: none;
             width: 100%;
             height: 6px;
             background: #e2e8f0;
@@ -155,6 +156,7 @@
         /* Clean Color Picker */
         input[type="color"] {
             -webkit-appearance: none;
+            appearance: none;
             padding: 0;
             border: none;
             border-radius: 8px;
@@ -753,16 +755,28 @@
         const meshCartThread = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 1, 32), bodyMat);
         meshCartThread.castShadow = true; meshCartThread.receiveShadow = true;
 
-        const meshCartNozzleBase = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.32, 1, 32), lidMat);
-        meshCartNozzleBase.castShadow = true; meshCartNozzleBase.receiveShadow = true;
-
-        const meshCartNozzleTip = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.2, 1, 32), lidMat);
-        meshCartNozzleTip.castShadow = true; meshCartNozzleTip.receiveShadow = true;
+        const nozzlePoints = [];
+        nozzlePoints.push(new THREE.Vector2(0.00, -0.50));
+        nozzlePoints.push(new THREE.Vector2(0.38, -0.50));
+        nozzlePoints.push(new THREE.Vector2(0.38, -0.47));
+        nozzlePoints.push(new THREE.Vector2(0.34, -0.47));
+        nozzlePoints.push(new THREE.Vector2(0.34, -0.32));
+        nozzlePoints.push(new THREE.Vector2(0.28, -0.32));
+        nozzlePoints.push(new THREE.Vector2(0.28, -0.29));
+        nozzlePoints.push(new THREE.Vector2(0.22, -0.29));
+        nozzlePoints.push(new THREE.Vector2(0.18, -0.22));
+        nozzlePoints.push(new THREE.Vector2(0.06, 0.42));
+        nozzlePoints.push(new THREE.Vector2(0.08, 0.42));
+        nozzlePoints.push(new THREE.Vector2(0.08, 0.50));
+        nozzlePoints.push(new THREE.Vector2(0.00, 0.50));
+        const geoNozzle = new THREE.LatheGeometry(nozzlePoints, 64);
+        const meshCartNozzle = new THREE.Mesh(geoNozzle, lidMat);
+        meshCartNozzle.castShadow = true; meshCartNozzle.receiveShadow = true;
 
         const meshCartRim = new THREE.Mesh(new THREE.CylinderGeometry(1.02, 1.02, 0.1, 64), bodyMat);
         meshCartRim.castShadow = true; meshCartRim.receiveShadow = true;
 
-        cartGroup.add(meshCartBody, meshCartLabel, meshCartTopLip, meshCartTopFlat, meshCartThread, meshCartNozzleBase, meshCartNozzleTip, meshCartRim);
+        cartGroup.add(meshCartBody, meshCartLabel, meshCartTopLip, meshCartTopFlat, meshCartThread, meshCartNozzle, meshCartRim);
 
         function updateCanDimensions() {
             const d_mm = parseFloat(document.getElementById('dim-diam').value);
@@ -809,17 +823,11 @@
                 meshCartThread.scale.set(r, threadH, r);
                 meshCartThread.position.y = h + lipH + (threadH / 2);
 
-                const nozzleBaseH = l * 0.15;
-                const nozzleTipH = l * 0.85;
-
-                meshCartNozzleBase.scale.set(r, nozzleBaseH, r);
-                meshCartNozzleBase.position.y = h + lipH + (nozzleBaseH / 2);
-
-                meshCartNozzleTip.scale.set(r, nozzleTipH, r);
-                meshCartNozzleTip.position.y = h + lipH + nozzleBaseH + (nozzleTipH / 2);
+                meshCartNozzle.scale.set(r, l, r);
+                meshCartNozzle.position.y = h + lipH + (l / 2);
 
                 let totalHeight = h + lipH + threadH;
-                if (meshCartNozzleBase.visible) totalHeight = h + lipH + nozzleBaseH + nozzleTipH;
+                if (meshCartNozzle.visible) totalHeight = h + lipH + l;
                 cartGroup.position.y = - (totalHeight / 2);
             }
 
@@ -977,8 +985,7 @@
 
         document.getElementById('toggle-lid').addEventListener('change', (e) => {
             meshLid.visible = e.target.checked;
-            meshCartNozzleBase.visible = e.target.checked;
-            meshCartNozzleTip.visible = e.target.checked;
+            meshCartNozzle.visible = e.target.checked;
             updateCanDimensions();
         });
 
