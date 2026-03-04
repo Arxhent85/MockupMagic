@@ -754,35 +754,59 @@
         meshCartBottomFlat.receiveShadow = true;
 
         const tShape = new THREE.Shape();
-        tShape.absarc(0, 0, 0.38, 0.6, Math.PI * 2 - 0.6, false);
-        tShape.lineTo(0.85, -0.05);
-        tShape.lineTo(0.85, 0.05);
+        tShape.absarc(0, 0, 0.36, Math.PI / 2 + 0.1, Math.PI * 3 / 2 - 0.1, false);
+        tShape.lineTo(0.55, -0.04);
+        tShape.lineTo(0.55, 0.04);
 
-        const extrudeSettings = { depth: 0.15, bevelEnabled: true, bevelSegments: 2, steps: 1, bevelSize: 0.015, bevelThickness: 0.015 };
+        const extrudeSettings = { depth: 0.25, bevelEnabled: true, bevelSegments: 2, steps: 1, bevelSize: 0.015, bevelThickness: 0.015 };
         const geoWedge = new THREE.ExtrudeGeometry(tShape, extrudeSettings);
+        const pos = geoWedge.attributes.position;
+        for (let i = 0; i < pos.count; i++) {
+            const x = pos.getX(i);
+            const z = pos.getZ(i);
+            if (z > 0.01) {
+                let factor = 1.0;
+                if (x > 0) factor = Math.max(0, 1.0 - (x / 0.58));
+                pos.setZ(i, z * factor);
+            }
+        }
+        geoWedge.computeVertexNormals();
         const meshCartWedge = new THREE.Mesh(geoWedge, bodyMat);
         meshCartWedge.castShadow = true; meshCartWedge.receiveShadow = true;
 
-        const nozzlePoints = [];
-        nozzlePoints.push(new THREE.Vector2(0.00, 0.00));
-        nozzlePoints.push(new THREE.Vector2(0.32, 0.00));
-        nozzlePoints.push(new THREE.Vector2(0.32, 0.04));
-        nozzlePoints.push(new THREE.Vector2(0.28, 0.04));
-        nozzlePoints.push(new THREE.Vector2(0.28, 0.07));
-        nozzlePoints.push(new THREE.Vector2(0.30, 0.07));
-        nozzlePoints.push(new THREE.Vector2(0.30, 0.10));
-        nozzlePoints.push(new THREE.Vector2(0.28, 0.10));
-        nozzlePoints.push(new THREE.Vector2(0.28, 0.15));
-        nozzlePoints.push(new THREE.Vector2(0.24, 0.15));
-        nozzlePoints.push(new THREE.Vector2(0.06, 0.98));
-        nozzlePoints.push(new THREE.Vector2(0.08, 0.98));
-        nozzlePoints.push(new THREE.Vector2(0.08, 1.00));
-        nozzlePoints.push(new THREE.Vector2(0.00, 1.00));
-        const geoNozzle = new THREE.LatheGeometry(nozzlePoints, 64);
-        const meshCartNozzle = new THREE.Mesh(geoNozzle, lidMat);
-        meshCartNozzle.castShadow = true; meshCartNozzle.receiveShadow = true;
+        const basePoints = [];
+        basePoints.push(new THREE.Vector2(0.24, 0.00));
+        basePoints.push(new THREE.Vector2(0.32, 0.00));
+        basePoints.push(new THREE.Vector2(0.32, 0.05));
+        basePoints.push(new THREE.Vector2(0.28, 0.05));
+        basePoints.push(new THREE.Vector2(0.28, 0.10));
+        basePoints.push(new THREE.Vector2(0.30, 0.10));
+        basePoints.push(new THREE.Vector2(0.30, 0.15));
+        basePoints.push(new THREE.Vector2(0.28, 0.15));
+        basePoints.push(new THREE.Vector2(0.28, 0.20));
+        basePoints.push(new THREE.Vector2(0.24, 0.20));
+        const meshCartNozzleBase = new THREE.Mesh(new THREE.LatheGeometry(basePoints, 64), lidMat);
+        meshCartNozzleBase.castShadow = true; meshCartNozzleBase.receiveShadow = true;
 
-        cartGroup.add(meshCartBody, meshCartLabel, meshCartTopFlat, meshCartBottomFlat, meshCartWedge, meshCartNozzle);
+        const tipPoints = [];
+        tipPoints.push(new THREE.Vector2(0.00, 0.00));
+        tipPoints.push(new THREE.Vector2(0.24, 0.00));
+        tipPoints.push(new THREE.Vector2(0.06, 0.98));
+        tipPoints.push(new THREE.Vector2(0.08, 0.98));
+        tipPoints.push(new THREE.Vector2(0.08, 1.00));
+        tipPoints.push(new THREE.Vector2(0.00, 1.00));
+        const meshCartNozzleTip = new THREE.Mesh(new THREE.LatheGeometry(tipPoints, 64), lidMat);
+        meshCartNozzleTip.castShadow = true; meshCartNozzleTip.receiveShadow = true;
+
+        const meshCartCenterRing = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.02, 16, 64), bodyMat);
+        meshCartCenterRing.rotation.x = Math.PI / 2;
+        meshCartCenterRing.receiveShadow = true;
+
+        const meshCartRim = new THREE.Mesh(geoTorus, bodyMat); // Added definition for meshCartRim
+        meshCartRim.rotation.x = Math.PI / 2;
+        meshCartRim.castShadow = true;
+
+        cartGroup.add(meshCartBody, meshCartLabel, meshCartTopFlat, meshCartBottomFlat, meshCartWedge, meshCartNozzleBase, meshCartNozzleTip, meshCartCenterRing, meshCartRim);
 
         function updateCanDimensions() {
             const d_mm = parseFloat(document.getElementById('dim-diam').value);
@@ -819,15 +843,25 @@
                 meshCartTopFlat.scale.set(r, 1, r); meshCartTopFlat.position.y = h - 0.05;
                 meshCartBottomFlat.scale.set(r, 1, r); meshCartBottomFlat.position.y = 0.5;
 
+                meshCartRim.scale.set(r, 1, r); meshCartRim.position.y = h - 0.025;
+
+                meshCartCenterRing.scale.set(r, r, r);
+                meshCartCenterRing.position.set(0, h - 0.05, 0);
+
+                const nozzleOffsetX = -0.55 * r;
+
                 meshCartWedge.rotation.x = -Math.PI / 2;
                 meshCartWedge.scale.set(r, r, r);
-                meshCartWedge.position.y = h - 0.05;
+                meshCartWedge.position.set(nozzleOffsetX, h - 0.05, 0);
 
-                meshCartNozzle.scale.set(r, l, r);
-                meshCartNozzle.position.y = h - 0.05 + (0.18 * r);
+                meshCartNozzleBase.scale.set(r, r, r);
+                meshCartNozzleBase.position.set(nozzleOffsetX, h - 0.05, 0);
 
-                let totalHeight = h - 0.05 + (0.18 * r);
-                if (meshCartNozzle.visible) totalHeight += l;
+                meshCartNozzleTip.scale.set(r, l, r);
+                meshCartNozzleTip.position.set(nozzleOffsetX, h - 0.05 + (0.20 * r), 0);
+
+                let totalHeight = h - 0.05 + (0.20 * r);
+                if (meshCartNozzleTip.visible) totalHeight += l;
                 cartGroup.position.y = - (totalHeight / 2);
             }
 
@@ -985,7 +1019,9 @@
 
         document.getElementById('toggle-lid').addEventListener('change', (e) => {
             meshLid.visible = e.target.checked;
-            meshCartNozzle.visible = e.target.checked;
+            meshCartNozzleBase.visible = e.target.checked;
+            meshCartNozzleTip.visible = e.target.checked;
+            meshCartWedge.visible = e.target.checked;
             updateCanDimensions();
         });
 
@@ -1031,7 +1067,10 @@
                 document.getElementById('slider-metalness').value = 0.0; bodyMat.metalness = 0.0;
                 document.getElementById('slider-lid-gloss').value = 0.4; lidMat.roughness = 0.6;
 
-                document.getElementById('toggle-lid').checked = true; meshCartNozzle.visible = true;
+                document.getElementById('toggle-lid').checked = true;
+                meshCartNozzleBase.visible = true;
+                meshCartNozzleTip.visible = true;
+                meshCartWedge.visible = true;
                 updateCanDimensions();
             });
         }
